@@ -74,28 +74,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 formData.append('repSignatureImage', repSignatureData);
             }
             
-            // In a real application, you would send this data to a server
-            // For demo purposes, we'll simulate server response delay
-            setTimeout(function() {
-                hideLoadingIndicator();
-                
-                // Log the form data for debugging
-                console.log('Form data being submitted:');
-                for (let [key, value] of formData.entries()) {
-                    if (key.includes('Image')) {
-                        // Don't log entire image data to console
-                        console.log(`${key}: [Image data]`);
-                    } else {
-                        console.log(`${key}: ${value}`);
-                    }
-                }
-                
-                // Show success message
-                showSuccessMessage('Form submitted successfully! A confirmation has been sent to your email.');
-                
-                // Optional: Reset form after successful submission
-                // resetForm();
-            }, 2000);
+            // Submit form data to the server
+            submitFormToServer(formData);
         }
     });
     
@@ -544,3 +524,236 @@ window.resetSignatures = function() {
         }
     });
 };
+
+/**
+ * Submit form data to the server
+ */
+function submitFormToServer(formData) {
+    // Set the server endpoint URL
+    const apiUrl = 'http://localhost:3000/api/submit';
+    
+    fetch(apiUrl, {
+        method: 'POST',
+        body: formData,
+        // Don't set Content-Type header as FormData will set it automatically with the boundary parameter
+    })
+    .then(response => {
+        if (!response.ok) {
+            // If the server response wasn't ok, throw an error
+            throw new Error(`Server responded with status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        hideLoadingIndicator();
+        
+        // Log successful submission
+        console.log('Form submitted successfully:', data);
+        
+        // Show success message with the response from server if available
+        const successMessage = data.message || 'Form submitted successfully! A confirmation has been sent to your email.';
+        showSuccessMessage(successMessage);
+        
+        // Save submission ID if provided by server
+        if (data.submissionId) {
+            localStorage.setItem('lastSubmissionId', data.submissionId);
+        }
+        
+        // Optional: Reset form after successful submission
+        const shouldReset = confirm('Form submitted successfully! Would you like to reset the form to enter a new profile?');
+        if (shouldReset) {
+            resetForm();
+        }
+    })
+    .catch(error => {
+        hideLoadingIndicator();
+        console.error('Error submitting form:', error);
+        
+        // Show appropriate error message
+        let errorMessage = 'There was an error submitting the form. Please try again later.';
+        
+        // Check for network errors
+        if (!navigator.onLine) {
+            errorMessage = 'You appear to be offline. Please check your internet connection and try again.';
+        }
+        
+        showErrorMessage(errorMessage);
+    });
+}
+
+/**
+ * Reset the form completely
+ */
+function resetForm() {
+    // Reset all form fields
+    const form = document.getElementById('borrowerProfileForm');
+    form.reset();
+    
+    // Clear signatures
+    const clientSignatureCanvas = document.querySelector('#signatureBox canvas');
+    const repSignatureCanvas = document.querySelector('#repSignatureBox canvas');
+    
+    if (clientSignatureCanvas) {
+        const ctx = clientSignatureCanvas.getContext('2d');
+        ctx.clearRect(0, 0, clientSignatureCanvas.width, clientSignatureCanvas.height);
+        // Reset context properties
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#000000';
+    }
+    
+    if (repSignatureCanvas) {
+        const ctx = repSignatureCanvas.getContext('2d');
+        ctx.clearRect(0, 0, repSignatureCanvas.width, repSignatureCanvas.height);
+        // Reset context properties
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#000000';
+    }
+    
+    // Reset image preview
+    resetImagePreview();
+    
+    // Reset textareas
+    const textAreas = document.querySelectorAll('textarea');
+    textAreas.forEach(textarea => {
+        textarea.value = '';
+    });
+    
+    // Set default date to today again
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('signatureDate').value = today;
+    document.getElementById('repSignatureDate').value = today;
+    
+    // Focus on first field
+    document.querySelector('input[name="name"]').focus();
+}
+
+/**
+ * Show loading indicator while form is being submitted
+ */
+function showLoadingIndicator() {
+    // Check if loading indicator already exists
+    let loader = document.querySelector('.form-loader');
+    
+    if (!loader) {
+        // Create loading indicator if it doesn't exist
+        loader = document.createElement('div');
+        loader.className = 'form-loader';
+        loader.innerHTML = `
+            <div class="loader-overlay"></div>
+            <div class="loader-content">
+                <div class="loader-spinner"></div>
+                <p>Submitting form, please wait...</p>
+            </div>
+        `;
+        document.body.appendChild(loader);
+    } else {
+        // If it exists, just make it visible
+        loader.style.display = 'block';
+    }
+    
+    // Disable the submit button to prevent multiple submissions
+    const submitButton = document.getElementById('submitForm');
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.classList.add('button-disabled');
+    }
+}
+
+/**
+ * Hide loading indicator after form submission completes
+ */
+function hideLoadingIndicator() {
+    const loader = document.querySelector('.form-loader');
+    if (loader) {
+        loader.style.display = 'none';
+    }
+    
+    // Re-enable the submit button
+    const submitButton = document.getElementById('submitForm');
+    if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.classList.remove('button-disabled');
+    }
+}
+
+/**
+ * Show success message after successful form submission
+ */
+function showSuccessMessage(message) {
+    // Check if message container already exists
+    let messageContainer = document.querySelector('.form-message');
+    
+    if (!messageContainer) {
+        // Create message container if it doesn't exist
+        messageContainer = document.createElement('div');
+        messageContainer.className = 'form-message';
+        document.body.appendChild(messageContainer);
+    }
+    
+    // Update message container with success message
+    messageContainer.innerHTML = `
+        <div class="message-content success">
+            <span class="message-icon">✓</span>
+            <p>${message}</p>
+            <button class="message-close">×</button>
+        </div>
+    `;
+    messageContainer.style.display = 'flex';
+    
+    // Add event listener to close button
+    const closeButton = messageContainer.querySelector('.message-close');
+    if (closeButton) {
+        closeButton.addEventListener('click', function() {
+            messageContainer.style.display = 'none';
+        });
+    }
+    
+    // Auto-hide message after 5 seconds
+    setTimeout(function() {
+        if (messageContainer) {
+            messageContainer.style.display = 'none';
+        }
+    }, 5000);
+}
+
+/**
+ * Show error message if form submission fails
+ */
+function showErrorMessage(message) {
+    // Check if message container already exists
+    let messageContainer = document.querySelector('.form-message');
+    
+    if (!messageContainer) {
+        // Create message container if it doesn't exist
+        messageContainer = document.createElement('div');
+        messageContainer.className = 'form-message';
+        document.body.appendChild(messageContainer);
+    }
+    
+    // Update message container with error message
+    messageContainer.innerHTML = `
+        <div class="message-content error">
+            <span class="message-icon">!</span>
+            <p>${message}</p>
+            <button class="message-close">×</button>
+        </div>
+    `;
+    messageContainer.style.display = 'flex';
+    
+    // Add event listener to close button
+    const closeButton = messageContainer.querySelector('.message-close');
+    if (closeButton) {
+        closeButton.addEventListener('click', function() {
+            messageContainer.style.display = 'none';
+        });
+    }
+    
+    // Auto-hide message after 5 seconds
+    setTimeout(function() {
+        if (messageContainer) {
+            messageContainer.style.display = 'none';
+        }
+    }, 5000);
+}
