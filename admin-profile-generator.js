@@ -22,6 +22,11 @@ document.addEventListener('DOMContentLoaded', function() {
             generateProfileButton.addEventListener('click', handleGenerateProfile);
         }
         
+        // Load the jsPDF library for PDF export
+        loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
+            .then(() => loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'))
+            .catch(err => console.error('Error loading PDF libraries:', err));
+        
         // Add profile section to the modal if it doesn't exist
         function ensureProfileSectionExists() {
             let profileSection = document.getElementById('generatedProfileSection');
@@ -34,7 +39,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const html = `
                     <h3>Generated Professional Profile</h3>
                     <div class="profile-content">
-                        <div class="profile-title" id="profileTitle"></div>
+                        <div class="profile-header">
+                            <div class="profile-image-container" id="profileImageContainer"></div>
+                            <div class="profile-title-container">
+                                <div class="profile-title" id="profileTitle"></div>
+                            </div>
+                        </div>
                         <div class="profile-text" id="profileText"></div>
                         <div class="profile-metadata">
                             <h4>Key Points:</h4>
@@ -45,6 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="profile-actions">
                         <button id="copyProfile" class="admin-button secondary">Copy Profile</button>
                         <button id="editProfile" class="admin-button secondary">Edit Profile</button>
+                        <button id="exportProfilePDF" class="admin-button">Export as PDF</button>
                     </div>
                     <div class="profile-editor-container" style="display: none;">
                         <textarea id="profileEditor" rows="8"></textarea>
@@ -63,6 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Add event listeners for profile actions
                     document.getElementById('copyProfile').addEventListener('click', copyProfileToClipboard);
                     document.getElementById('editProfile').addEventListener('click', editProfile);
+                    document.getElementById('exportProfilePDF').addEventListener('click', exportProfileToPDF);
                     document.getElementById('saveProfileEdit').addEventListener('click', saveProfileEdit);
                     document.getElementById('cancelProfileEdit').addEventListener('click', cancelProfileEdit);
                 }
@@ -101,6 +113,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Display the generated profile
                 displayGeneratedProfile(data.profile);
+                
+                // Also store the submission ID for reference
+                window.currentSubmissionData = data.submission;
             })
             .catch(error => {
                 console.error('Error generating profile:', error);
@@ -141,8 +156,47 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('profileSentiment').textContent = '';
             }
             
+            // Add profile image if available
+            addProfileImage();
+            
             // Scroll to the profile section
             profileSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        // Add profile image to the generated profile
+        function addProfileImage() {
+            const imageContainer = document.getElementById('profileImageContainer');
+            if (!imageContainer) return;
+            
+            // Clear existing content
+            imageContainer.innerHTML = '';
+            
+            // Get the current submission data
+            fetch(`/api/admin/submissions/${currentSubmissionId}`)
+                .then(response => response.json())
+                .then(submission => {
+                    if (submission.profileImagePath) {
+                        const img = document.createElement('img');
+                        img.src = `/${submission.profileImagePath}`;
+                        img.alt = 'Borrower Profile Image';
+                        img.className = 'borrower-profile-image';
+                        imageContainer.appendChild(img);
+                    } else {
+                        // No image available
+                        const placeholder = document.createElement('div');
+                        placeholder.className = 'profile-image-placeholder';
+                        placeholder.textContent = 'No image available';
+                        imageContainer.appendChild(placeholder);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching submission details:', err);
+                    // Show placeholder on error
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'profile-image-placeholder';
+                    placeholder.textContent = 'Error loading image';
+                    imageContainer.appendChild(placeholder);
+                });
         }
         
         // Copy profile to clipboard
@@ -202,6 +256,112 @@ document.addEventListener('DOMContentLoaded', function() {
         function cancelProfileEdit() {
             document.querySelector('.profile-editor-container').style.display = 'none';
         }
+        
+        // Export profile as PDF
+        function exportProfileToPDF() {
+            if (typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined') {
+                alert('PDF export libraries are still loading. Please try again in a few seconds.');
+                return;
+            }
+            
+            // Show loading message
+            const exportButton = document.getElementById('exportProfilePDF');
+            const originalText = exportButton.textContent;
+            exportButton.textContent = 'Generating PDF...';
+            exportButton.disabled = true;
+            
+            // Create a container for the PDF content
+            const pdfContainer = document.createElement('div');
+            pdfContainer.className = 'pdf-export-container';
+            pdfContainer.style.width = '800px';
+            pdfContainer.style.padding = '40px';
+            pdfContainer.style.backgroundColor = 'white';
+            pdfContainer.style.position = 'absolute';
+            pdfContainer.style.left = '-9999px';
+            document.body.appendChild(pdfContainer);
+            
+            // Get profile data
+            const profileTitle = document.getElementById('profileTitle').textContent;
+            const profileText = document.getElementById('profileText').innerHTML;
+            
+            // Get image if available
+            let profileImageSrc = null;
+            const profileImage = document.querySelector('.borrower-profile-image');
+            if (profileImage) {
+                profileImageSrc = profileImage.src;
+            }
+            
+            // Build PDF content
+            pdfContainer.innerHTML = `
+                <div class="pdf-header">
+                    <img src="images/logo.png" alt="ECLOF Kenya Logo" style="height: 80px; margin-bottom: 20px;">
+                    <h1 style="color: #004f71; margin-bottom: 30px;">Kiva Borrower Profile</h1>
+                </div>
+                <div class="pdf-profile">
+                    ${profileImageSrc ? `<img src="${profileImageSrc}" alt="Borrower" style="width: 200px; float: right; margin: 0 0 20px 20px; border: 1px solid #ddd;">` : ''}
+                    <h2 style="color: #008751; margin-bottom: 20px;">${profileTitle}</h2>
+                    <div style="line-height: 1.6; text-align: justify;">${profileText}</div>
+                </div>
+                <div class="pdf-footer" style="margin-top: 40px; text-align: center; font-size: 12px; color: #666;">
+                    <p>Generated by ECLOF Kenya - ${new Date().toLocaleDateString()}</p>
+                </div>
+            `;
+            
+            // Use html2canvas and jsPDF to create PDF
+            window.html2canvas(pdfContainer, { 
+                scale: 2,
+                useCORS: true,
+                logging: false
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
+                
+                // Calculate dimensions
+                const imgWidth = 210; // A4 width in mm
+                const pageHeight = 297; // A4 height in mm
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+                
+                let heightLeft = imgHeight;
+                let position = 0;
+                
+                // Add image to the PDF
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+                
+                // Add additional pages if necessary
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+                
+                // Generate PDF name
+                const borrowerName = currentSubmissionData?.data?.name || 'Borrower';
+                const fileName = `${borrowerName.replace(/\s+/g, '_')}_Profile_${new Date().toISOString().slice(0, 10)}.pdf`;
+                
+                // Save the PDF
+                pdf.save(fileName);
+                
+                // Clean up
+                document.body.removeChild(pdfContainer);
+                
+                // Reset button
+                exportButton.textContent = originalText;
+                exportButton.disabled = false;
+            });
+        }
+    }
+    
+    // Helper function to load external scripts
+    function loadScript(src) {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
     }
 });
 
@@ -215,6 +375,41 @@ document.addEventListener('DOMContentLoaded', function() {
             padding: 20px;
             border-radius: 8px;
             border-left: 5px solid #004f71;
+        }
+        
+        .profile-header {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        
+        .profile-image-container {
+            width: 150px;
+            height: 150px;
+            border: 1px solid #ddd;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f5f5;
+            flex-shrink: 0;
+        }
+        
+        .borrower-profile-image {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        .profile-image-placeholder {
+            color: #999;
+            text-align: center;
+            font-size: 14px;
+            padding: 10px;
+        }
+        
+        .profile-title-container {
+            flex-grow: 1;
         }
         
         .profile-title {
@@ -269,6 +464,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Helper function to make currentSubmissionId accessible
 let currentSubmissionId = null;
+let currentSubmissionData = null;
 const originalViewSubmissionDetails = window.viewSubmissionDetails || null;
 
 if (typeof window.viewSubmissionDetails === 'function') {
@@ -286,6 +482,7 @@ if (typeof window.viewSubmissionDetails === 'function') {
             fetch(`/api/admin/submissions/${submissionId}`)
                 .then(response => response.json())
                 .then(submission => {
+                    currentSubmissionData = submission;
                     if (submission.generatedProfile) {
                         const profileSection = document.getElementById('generatedProfileSection');
                         if (profileSection) {
@@ -328,6 +525,17 @@ function displayGeneratedProfile(profileData) {
                 document.getElementById('profileSentiment').textContent = `Sentiment: ${profileData.metadata.sentiment}`;
             } else {
                 document.getElementById('profileSentiment').textContent = '';
+            }
+            
+            // Add profile image
+            const imageContainer = document.getElementById('profileImageContainer');
+            if (imageContainer && currentSubmissionData && currentSubmissionData.profileImagePath) {
+                imageContainer.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = `/${currentSubmissionData.profileImagePath}`;
+                img.alt = 'Borrower Profile Image';
+                img.className = 'borrower-profile-image';
+                imageContainer.appendChild(img);
             }
             
             profileSection.scrollIntoView({ behavior: 'smooth', block: 'start' });

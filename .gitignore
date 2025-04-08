@@ -29,3 +29,6 @@ submissions/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Documentation files
+*.md

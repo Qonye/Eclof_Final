@@ -267,7 +267,8 @@ app.post('/api/admin/generate-profile/:id', async (req, res) => {
     
     res.status(200).json({
       success: true,
-      profile: result.data
+      profile: result.data,
+      submission: submission // Include the full submission data
     });
   } catch (error) {
     console.error('Error generating profile:', error);
