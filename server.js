@@ -3,6 +3,8 @@ const cors = require('cors');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+// Import the profile generator
+const { generateProfile } = require('./profile-generator');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -218,6 +220,60 @@ app.delete('/api/admin/submissions/:id', (req, res) => {
     res.status(500).json({
       success: false,
       message: 'An error occurred while deleting the submission.',
+      error: error.message
+    });
+  }
+});
+
+// Profile Generation Endpoint
+app.post('/api/admin/generate-profile/:id', async (req, res) => {
+  try {
+    const submissionId = req.params.id;
+    const submissionsDir = path.join(__dirname, 'submissions');
+    
+    // Find the submission file
+    const submissionFiles = fs.readdirSync(submissionsDir)
+      .filter(file => file.includes(submissionId) && file.endsWith('.json'));
+    
+    if (submissionFiles.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Submission not found.'
+      });
+    }
+    
+    // Read the submission file
+    const filePath = path.join(submissionsDir, submissionFiles[0]);
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    const submission = JSON.parse(fileContent);
+    
+    // Generate profile using the submission data
+    const result = await generateProfile(submission.data);
+    
+    if (!result.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to generate profile',
+        error: result.error
+      });
+    }
+    
+    // If the generation was successful, update the submission with the generated profile
+    submission.generatedProfile = result.data;
+    submission.profileGeneratedAt = new Date().toISOString();
+    
+    // Save the updated submission
+    fs.writeFileSync(filePath, JSON.stringify(submission, null, 2));
+    
+    res.status(200).json({
+      success: true,
+      profile: result.data
+    });
+  } catch (error) {
+    console.error('Error generating profile:', error);
+    res.status(500).json({
+      success: false,
+      message: 'An error occurred while generating the profile.',
       error: error.message
     });
   }
