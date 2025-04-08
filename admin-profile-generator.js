@@ -19,7 +19,15 @@ document.addEventListener('DOMContentLoaded', function() {
             modalActions.insertBefore(generateProfileButton, modalActions.firstChild);
             
             // Add event listener to the button
-            generateProfileButton.addEventListener('click', handleGenerateProfile);
+            generateProfileButton.addEventListener('click', function() {
+                // Get submission ID directly from the modal if available
+                const modalElement = document.getElementById('submissionModal');
+                if (modalElement && modalElement.dataset.submissionId) {
+                    window.currentSubmissionId = modalElement.dataset.submissionId;
+                }
+                
+                handleGenerateProfile();
+            });
         }
         
         // Load the jsPDF library for PDF export
@@ -84,10 +92,19 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Handle Generate Profile button click
         function handleGenerateProfile() {
-            const submissionId = currentSubmissionId;
+            const submissionId = window.currentSubmissionId;
+            
             if (!submissionId) {
-                alert('No submission selected.');
-                return;
+                // Try to get the submission ID from the URL if it's not in the variable
+                const urlParams = new URLSearchParams(window.location.search);
+                const idFromUrl = urlParams.get('id');
+                
+                if (idFromUrl) {
+                    window.currentSubmissionId = idFromUrl;
+                } else {
+                    alert('No submission selected. Please try reopening the submission details.');
+                    return;
+                }
             }
             
             // Show loading indicator
@@ -97,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
             generateProfileButton.disabled = true;
             
             // Make API request to generate profile
-            fetch(`/api/admin/generate-profile/${submissionId}`, {
+            fetch(`/api/admin/generate-profile/${window.currentSubmissionId}`, {
                 method: 'POST'
             })
             .then(response => {
@@ -111,11 +128,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error(data.message || 'Failed to generate profile');
                 }
                 
+                // Store the submission data globally
+                window.currentSubmissionData = data.submission;
+                
                 // Display the generated profile
                 displayGeneratedProfile(data.profile);
-                
-                // Also store the submission ID for reference
-                window.currentSubmissionData = data.submission;
             })
             .catch(error => {
                 console.error('Error generating profile:', error);
@@ -171,32 +188,64 @@ document.addEventListener('DOMContentLoaded', function() {
             // Clear existing content
             imageContainer.innerHTML = '';
             
-            // Get the current submission data
-            fetch(`/api/admin/submissions/${currentSubmissionId}`)
-                .then(response => response.json())
-                .then(submission => {
-                    if (submission.profileImagePath) {
-                        const img = document.createElement('img');
-                        img.src = `/${submission.profileImagePath}`;
-                        img.alt = 'Borrower Profile Image';
-                        img.className = 'borrower-profile-image';
-                        imageContainer.appendChild(img);
-                    } else {
-                        // No image available
+            // Check if we already have the submission data
+            if (window.currentSubmissionData) {
+                addImageFromSubmissionData(window.currentSubmissionData);
+            } else {
+                // Fetch the submission data if we don't have it yet
+                fetch(`/api/admin/submissions/${window.currentSubmissionId}`)
+                    .then(response => response.json())
+                    .then(submission => {
+                        window.currentSubmissionData = submission;
+                        addImageFromSubmissionData(submission);
+                    })
+                    .catch(err => {
+                        console.error('Error fetching submission details:', err);
+                        // Show placeholder on error
                         const placeholder = document.createElement('div');
                         placeholder.className = 'profile-image-placeholder';
-                        placeholder.textContent = 'No image available';
+                        placeholder.textContent = 'Error loading image';
                         imageContainer.appendChild(placeholder);
-                    }
-                })
-                .catch(err => {
-                    console.error('Error fetching submission details:', err);
-                    // Show placeholder on error
-                    const placeholder = document.createElement('div');
-                    placeholder.className = 'profile-image-placeholder';
-                    placeholder.textContent = 'Error loading image';
-                    imageContainer.appendChild(placeholder);
-                });
+                    });
+            }
+        }
+        
+        // Helper function to add image from submission data
+        function addImageFromSubmissionData(submission) {
+            const imageContainer = document.getElementById('profileImageContainer');
+            if (!imageContainer) return;
+            
+            // Check for a profile image path
+            if (submission && submission.profileImagePath) {
+                const img = document.createElement('img');
+                
+                // Fix the path - convert absolute path to relative path
+                let imgSrc = submission.profileImagePath;
+                
+                // Check if it's an absolute path and extract the relative part
+                if (imgSrc.includes('\\uploads\\') || imgSrc.includes('/uploads/')) {
+                    // Extract just the filename from the path
+                    const pathParts = imgSrc.split(/[\\\/]/);
+                    const filename = pathParts[pathParts.length - 1];
+                    imgSrc = `/uploads/${filename}`;
+                }
+                
+                img.src = imgSrc;
+                img.alt = 'Borrower Profile Image';
+                img.className = 'borrower-profile-image';
+                img.onerror = function() {
+                    console.error('Image failed to load:', imgSrc);
+                    this.onerror = null;
+                    this.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9IiNjY2MiIGQ9Ik0xMiAxMkM5LjggMTIgOCAxMC4yIDggOHMyLjgtNCA0LTRzNCAyLjggNCA0cy0yLjggNC00IDRtMCAyYzIuNyAwIDggMS41IDggNHY0SDF2LTRjMC0yLjUgNS4zLTQgOC00bTMgNmMwLTEuMSAxLjktMiAzLTJzMyAuOSAzIDJ2Mkg3di0yeiIvPjwvc3ZnPg=='; // Default image
+                };
+                imageContainer.appendChild(img);
+            } else {
+                // No image available
+                const placeholder = document.createElement('div');
+                placeholder.className = 'profile-image-placeholder';
+                placeholder.textContent = 'No image available';
+                imageContainer.appendChild(placeholder);
+            }
         }
         
         // Copy profile to clipboard
@@ -532,9 +581,26 @@ function displayGeneratedProfile(profileData) {
             if (imageContainer && currentSubmissionData && currentSubmissionData.profileImagePath) {
                 imageContainer.innerHTML = '';
                 const img = document.createElement('img');
-                img.src = `/${currentSubmissionData.profileImagePath}`;
+                
+                // Fix the path - convert absolute path to relative path
+                let imgSrc = currentSubmissionData.profileImagePath;
+                
+                // Check if it's an absolute path and extract the relative part
+                if (imgSrc.includes('\\uploads\\') || imgSrc.includes('/uploads/')) {
+                    // Extract just the filename from the path
+                    const pathParts = imgSrc.split(/[\\\/]/);
+                    const filename = pathParts[pathParts.length - 1];
+                    imgSrc = `/uploads/${filename}`;
+                }
+                
+                img.src = imgSrc;
                 img.alt = 'Borrower Profile Image';
                 img.className = 'borrower-profile-image';
+                img.onerror = function() {
+                    console.error('Image failed to load:', imgSrc);
+                    this.onerror = null;
+                    this.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9IiNjY2MiIGQ9Ik0xMiAxMkM5LjggMTIgOCAxMC4yIDggOHMyLjgtNCA0LTRzNCAyLjggNCA0cy0yLjggNC00IDRtMCAyYzIuNyAwIDggMS41IDggNHY0SDF2LTRjMC0yLjUgNS4zLTQgOC00bTMgNmMwLTEuMSAxLjktMiAzLTJzMyAuOSAzIDJ2Mkg3di0yeiIvPjwvc3ZnPg=='; // Default image
+                };
                 imageContainer.appendChild(img);
             }
             

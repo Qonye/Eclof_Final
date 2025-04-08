@@ -37,6 +37,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let itemsPerPage = 10;
     let currentSubmissionId = null;
 
+    // Make currentSubmissionId accessible globally for the profile generator
+    window.currentSubmissionId = null;
+
     // Check if the user is already logged in
     checkLoginStatus();
 
@@ -312,8 +315,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json();
             })
             .then(submission => {
-                // Store the current submission ID
+                // Store the current submission ID both locally and globally
                 currentSubmissionId = submissionId;
+                window.currentSubmissionId = submissionId;
+                
+                // Store the submission data globally for the profile generator
+                window.currentSubmissionData = submission;
+                
+                // Add the submission ID as a data attribute to the modal for easier access
+                submissionModal.dataset.submissionId = submissionId;
                 
                 // Fill the modal with submission details
                 renderSubmissionDetails(submission);
@@ -469,8 +479,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Close the submission details modal
     function closeSubmissionModal() {
         submissionModal.style.display = 'none';
-        currentSubmissionId = null;
+        // Don't clear the currentSubmissionId here anymore
+        // This allows the profile generator to still access it after the modal is closed
     }
+    
+    // Make the viewSubmissionDetails function globally accessible
+    window.viewSubmissionDetails = viewSubmissionDetails;
 
     // Print submission details
     function printSubmissionDetails() {
