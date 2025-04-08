@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECLOF Kenya - Kiva Borrower Profile</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="images/logo.png" alt="ECLOF Kenya Logo" class="logo">
+            <h1>Kiva Borrower Profile</h1>
+        </header>
+
+        <form id="borrowerProfileForm" enctype="multipart/form-data">
+            <!-- Basic Information -->
+            <div class="form-section">
+                <table class="basic-info">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Branch</th>
+                            <th>Client ID(system)</th>
+                            <th>Loan Amount</th>
+                            <th>Group Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-label="Name"><input type="text" name="name" required></td>
+                            <td data-label="Branch"><input type="text" name="branch" required></td>
+                            <td data-label="Client ID"><input type="text" name="clientId" required></td>
+                            <td data-label="Loan Amount"><input type="number" name="loanAmount" required></td>
+                            <td data-label="Group Name"><input type="text" name="groupName"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Profile Image Upload -->
+            <div class="profile-image-section">
+                <h3>Profile Image</h3>
+                <p>Please upload a clear photo of yourself for your Kiva profile</p>
+                
+                <div class="image-upload-container">
+                    <div class="image-preview" id="imagePreview">
+                        <span class="image-preview-text">Image Preview</span>
+                    </div>
+                    <label for="profileImage" class="file-upload-label">Choose Image</label>
+                    <input type="file" id="profileImage" name="profileImage" accept="image/*">
+                </div>
+            </div>
+
+            <!-- Background Details -->
+            <div class="form-section">
+                <label for="background">Please provide some background details about yourself and your family circumstances (your age, number and age of children, are you married?, what is your spouse's job?, do you support others in your family? etc)</label>
+                <textarea id="background" name="background" rows="4" required></textarea>
+            </div>
+
+            <!-- Business Description -->
+            <div class="form-section">
+                <label for="business">Please describe your business. What do you enjoy about it?</label>
+                <textarea id="business" name="business" rows="4" required></textarea>
+            </div>
+
+            <!-- Loan Purpose -->
+            <div class="form-section">
+                <label for="loanPurpose">What, specifically, will the loan be used for?</label>
+                <textarea id="loanPurpose" name="loanPurpose" rows="4" required></textarea>
+            </div>
+
+            <!-- Challenges and Plans -->
+            <div class="form-section">
+                <label for="challenges">What are your main challenges? Why is the loan needed? How will you use the profits from the business?</label>
+                <textarea id="challenges" name="challenges" rows="4" required></textarea>
+            </div>
+
+            <!-- Community Contribution -->
+            <div class="form-section">
+                <label for="community">How do you, or your business, contribute to the wider community? (Do you give employment to others, give business to local suppliers etc?)</label>
+                <textarea id="community" name="community" rows="4" required></textarea>
+            </div>
+
+            <!-- Previous Loans -->
+            <div class="form-section">
+                <label for="previousLoans">Please provide details of any ECLOF loan you have previously taken. What was it used for and was it fully repaid on time?</label>
+                <textarea id="previousLoans" name="previousLoans" rows="4"></textarea>
+            </div>
+
+            <!-- Future Plans -->
+            <div class="form-section">
+                <label for="futurePlans">What are your hopes and dreams for the future, or for your children's future? How can the loan help you achieve these?</label>
+                <textarea id="futurePlans" name="futurePlans" rows="4" required></textarea>
+            </div>
+
+            <!-- Additional Comments -->
+            <div class="form-section">
+                <label for="additionalComments">Anything else you would like to say to the people across the world who are making the loan?</label>
+                <textarea id="additionalComments" name="additionalComments" rows="4"></textarea>
+            </div>
+
+            <!-- Waiver Section -->
+            <div class="waiver-section">
+                <h3>Client Waiver Form (Loan Description and Photo Waiver) – Individual Signature</h3>
+                <p class="waiver-text">
+                    Original Materials, Interviews, Film, Photos, Tape and Video Consent and Release
+                </p>
+                <p class="waiver-text">
+                    We, ECLOF Kenya Ltd., and Kiva want to explain to the world how our loans work so that we can expand our programs. To do that, we want to use your picture, your name, video and audio recordings of you (if available), a description of your business and other general information about you, your current loan and previous loans we have made to you. By signing below, you agree that as part of the loan program we and Kiva can use all of this information anywhere in the world (including but not limited to on the internet) at any time in order to explain our loan programs and expand them. We will strive, for ourselves and Kiva, to use this information in ways that reflect fairly on you and our relationship, including providing explanatory information for delinquencies or defaults.
+                </p>
+                <p class="waiver-text bold">
+                    This consent is given without expiration, and future uses do not require additional permission.
+                </p>
+                <p class="waiver-text bold">
+                    The below signed individual hereby consents to and gives permission to the above.
+                </p>
+
+                <!-- Client Signature -->
+                <div class="signature-section">
+                    <div class="signature-field">
+                        <label for="signature">* Client Signature:</label>
+                        <div id="signatureBox" class="signature-box"></div>
+                        <button type="button" id="clearSignature">Clear Signature</button>
+                    </div>
+                    
+                    <div class="signature-details">
+                        <div class="form-group">
+                            <label for="clientName">Client Print Name:</label>
+                            <input type="text" id="clientName" name="clientName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signatureDate">Date:</label>
+                            <input type="date" id="signatureDate" name="signatureDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="address">Address:</label>
+                            <input type="text" id="address" name="address" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Verbal Consent Section -->
+                <div class="verbal-consent">
+                    <h4>**The following is required if the consent form has to be read to the individual:</h4>
+                    <p>I certify that I have read this consent and release form in full to the individual whose name appears above and that the individual has verbally consented to the waiver.</p>
+                    
+                    <div class="representative-signature">
+                        <div class="form-group">
+                            <label for="repSignatureDate">Date:</label>
+                            <input type="date" id="repSignatureDate" name="repSignatureDate" class="mobile-friendly-date">
+                        </div>
+                        <div class="form-group signature-field">
+                            <label for="repSignature" class="responsive-label">Signature of ECLOF Kenya Ltd Representative:</label>
+                            <div id="repSignatureBox" class="signature-box"></div>
+                            <button type="button" id="clearRepSignature" class="mobile-button">Clear Signature</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Important Note -->
+                <div class="important-note">
+                    <p><strong>NB:</strong> If a borrower does not want to sign the client waiver, his/her profile cannot be posted on Kiva.</p>
+                </div>
+            </div>
+
+            <!-- Form Submission -->
+            <div class="form-actions">
+                <button type="submit" id="submitForm">Submit Form</button>
+                <button type="button" id="resetForm">Reset Form</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
