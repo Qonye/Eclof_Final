@@ -155,13 +155,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const clientId = submission.data.clientId || 'N/A';
             
             row.innerHTML = `
-                <td>${submission.id}</td>
-                <td>${date}</td>
-                <td>${name}</td>
-                <td>${branch}</td>
-                <td>${loanAmount}</td>
-                <td>${clientId}</td>
-                <td>
+                <td data-label="Submission ID">${submission.id}</td>
+                <td data-label="Date">${date}</td>
+                <td data-label="Borrower Name">${name}</td>
+                <td data-label="Branch">${branch}</td>
+                <td data-label="Loan Amount">${loanAmount}</td>
+                <td data-label="Client ID">${clientId}</td>
+                <td data-label="Actions">
                     <div class="action-buttons">
                         <button class="action-button view-button" data-id="${submission.id}">View</button>
                         <button class="action-button delete-button" data-id="${submission.id}">Delete</button>

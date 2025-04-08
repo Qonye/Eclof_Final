@@ -333,12 +333,8 @@ h2 {
     border-top: 1px solid #eee;
 }
 
-/* Responsive styles */
-@media (max-width: 768px) {
-    .admin-container {
-        padding: 10px;
-    }
-    
+/* Enhanced Responsive styles */
+@media (max-width: 1024px) {
     .dashboard-header {
         flex-direction: column;
         align-items: flex-start;
@@ -346,23 +342,79 @@ h2 {
     }
     
     .dashboard-controls {
-        flex-direction: column;
         width: 100%;
+        justify-content: space-between;
+    }
+    
+    .search-box input {
+        min-width: 200px;
+    }
+    
+    .filter-box label {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    h1 {
+        font-size: 22px;
+    }
+    
+    .admin-container {
+        padding: 10px;
+    }
+    
+    .dashboard-header {
         margin-bottom: 15px;
+    }
+    
+    .dashboard-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
     }
     
     .search-box, .filter-box {
         width: 100%;
+        flex-wrap: wrap;
+    }
+    
+    .search-box {
+        flex-direction: column;
+        gap: 8px;
     }
     
     .search-box input {
-        flex-grow: 1;
         min-width: 0;
+        width: 100%;
+    }
+    
+    .search-box button {
+        width: 100%;
+    }
+    
+    .filter-box {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .filter-box input[type="date"] {
+        width: 100%;
+    }
+    
+    .filter-box button {
+        width: 100%;
+    }
+    
+    #resetFilters, #logoutButton {
+        width: 100%;
+        margin-top: 5px;
     }
     
     .modal-content {
         width: 95%;
-        padding: 15px;
+        margin: 20px auto;
+        padding: 20px 15px;
     }
     
     .detail-item {
@@ -370,6 +422,142 @@ h2 {
     }
     
     .detail-label {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    
+    .borrower-images {
+        justify-content: center;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+    }
+    
+    .modal-actions button {
+        width: 100%;
+    }
+    
+    .pagination {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+    header {
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+    }
+    
+    .logo {
+        max-width: 150px;
+    }
+    
+    h1 {
+        font-size: 18px;
+    }
+    
+    h2 {
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+    
+    .admin-login {
+        padding: 20px 15px;
+        margin: 20px auto;
+    }
+    
+    .submissions-table th, 
+    .submissions-table td {
+        padding: 8px 6px;
+        font-size: 13px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .action-button {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .close-modal {
+        right: 15px;
+        top: 10px;
+    }
+    
+    .image-container {
+        width: 100%;
+    }
+}
+
+/* Responsive table adjustments */
+@media (max-width: 640px) {
+    /* Convert table to cards on mobile */
+    .submissions-table thead {
+        display: none;
+    }
+    
+    .submissions-table, 
+    .submissions-table tbody, 
+    .submissions-table tr {
+        display: block;
+        width: 100%;
+    }
+    
+    .submissions-table tr {
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .submissions-table td {
+        display: flex;
+        padding: 8px 10px;
+        text-align: right;
+        border: none;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .submissions-table td:last-child {
+        border-bottom: none;
+    }
+    
+    .submissions-table td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        flex: 1;
+        text-align: left;
+        padding-right: 10px;
+        color: var(--eclof-blue);
+    }
+}
+
+/* Generated Profile Section Responsive Styles */
+@media (max-width: 768px) {
+    .generated-profile-section {
+        padding: 15px;
+    }
+    
+    .profile-header {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .profile-image-container {
+        width: 120px;
+        height: 120px;
+        margin-bottom: 15px;
+    }
+    
+    .profile-actions {
+        flex-direction: column;
+    }
+    
+    .profile-actions button {
         width: 100%;
         margin-bottom: 5px;
     }
