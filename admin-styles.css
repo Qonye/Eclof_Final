@@ -333,6 +333,46 @@ h2 {
     border-top: 1px solid #eee;
 }
 
+/* Documentation Links */
+.admin-documentation {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+    text-align: center;
+}
+
+.admin-documentation p {
+    color: #666;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+.dashboard-documentation {
+    margin: 15px 0;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.doc-link {
+    display: inline-block;
+    margin: 0 10px;
+    color: #004f71;
+    text-decoration: none;
+    font-size: 0.9em;
+    padding: 5px 10px;
+    border-radius: 4px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    transition: all 0.3s ease;
+}
+
+.doc-link:hover {
+    background-color: #e0e0e0;
+    border-color: #ccc;
+    text-decoration: underline;
+}
+
 /* Enhanced Responsive styles */
 @media (max-width: 1024px) {
     .dashboard-header {
@@ -440,6 +480,12 @@ h2 {
     
     .pagination {
         flex-wrap: wrap;
+    }
+    
+    .dashboard-documentation {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
     }
 }
 

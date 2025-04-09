@@ -693,3 +693,37 @@ button[type="button"] {
     background-color: #004f71;
     color: white;
 }
+
+/* Admin Documentation Links in Dialog */
+.admin-documentation-links {
+    margin: 15px 0;
+    padding: 10px 0;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    text-align: center;
+}
+
+.admin-documentation-links p {
+    margin-bottom: 8px;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.admin-documentation-links .doc-link {
+    display: inline-block;
+    margin: 0 10px;
+    color: #004f71;
+    text-decoration: none;
+    font-size: 0.9em;
+    padding: 5px 10px;
+    border-radius: 4px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    transition: all 0.3s ease;
+}
+
+.admin-documentation-links .doc-link:hover {
+    background-color: #e0e0e0;
+    border-color: #ccc;
+    text-decoration: underline;
+}

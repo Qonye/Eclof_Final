@@ -16,9 +16,14 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="admin-dialog-content">
                 <h3>Staff Access</h3>
                 <p>You are about to access the staff portal area. This area is restricted to authorized personnel only.</p>
+                <div class="admin-documentation-links">
+                    <p>Staff Resources:</p>
+                    <a href="ECLOF_Kenya_System_Overview.html" target="_blank" class="doc-link">System Overview</a>
+                    <a href="ECLOF_Kenya_User_Guide.html" target="_blank" class="doc-link">User Guide</a>
+                </div>
                 <div class="admin-dialog-buttons">
                     <button class="cancel-btn">Cancel</button>
-                    <button class="confirm-btn">Continue</button>
+                    <button class="confirm-btn">Continue to Staff Portal</button>
                 </div>
             </div>
         `;
