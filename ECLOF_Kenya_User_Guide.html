@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECLOF Kenya - Kiva Borrower Profile System User Guide</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #99c355;
+        }
+        
+        .logo {
+            max-width: 200px;
+        }
+        
+        .title-container {
+            text-align: right;
+        }
+        
+        h1 {
+            color: #004f71;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            color: #008751;
+            font-size: 1.2em;
+            font-weight: normal;
+            margin-top: 0;
+        }
+        
+        h2 {
+            color: #008751;
+            border-bottom: 2px solid #99c355;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        
+        h3 {
+            color: #004f71;
+            margin-top: 20px;
+        }
+        
+        .step {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-left: 5px solid #ffd100;
+            margin: 15px 0;
+        }
+        
+        .step-number {
+            display: inline-block;
+            background-color: #004f71;
+            color: white;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .note {
+            background-color: #fff8e1;
+            padding: 10px;
+            border-left: 5px solid #ffd100;
+            margin: 15px 0;
+        }
+        
+        .tip {
+            background-color: #e8f5e9;
+            padding: 10px;
+            border-left: 5px solid #008751;
+            margin: 15px 0;
+        }
+        
+        .warning {
+            background-color: #ffebee;
+            padding: 10px;
+            border-left: 5px solid #c62828;
+            margin: 15px 0;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #99c355;
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        ul.checklist {
+            list-style: none;
+            padding-left: 10px;
+        }
+        
+        ul.checklist li {
+            padding-left: 30px;
+            position: relative;
+            margin-bottom: 10px;
+        }
+        
+        ul.checklist li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #008751;
+            font-weight: bold;
+        }
+        
+        .screenshot {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin: 10px 0;
+        }
+        
+        @media print {
+            body {
+                font-size: 12pt;
+            }
+            
+            .no-print {
+                display: none;
+            }
+            
+            a {
+                text-decoration: none;
+                color: #000;
+            }
+            
+            .container {
+                max-width: 100%;
+            }
+            
+            .step, .note, .tip, .warning {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="images/logo.png" alt="ECLOF Kenya Logo" class="logo">
+            <div class="title-container">
+                <h1>Kiva Borrower Profile System</h1>
+                <h2 class="subtitle">Official User Guide</h2>
+            </div>
+        </div>
+
+        <section>
+            <h2>Introduction</h2>
+            <p>Welcome to the ECLOF Kenya Kiva Borrower Profile System. This guide will walk you through the process of using the system to collect borrower information and generate professional profiles for the Kiva platform.</p>
+            
+            <div class="note">
+                <strong>Note:</strong> This system is designed to streamline the process of creating borrower profiles for Kiva while ensuring consistency and quality across all submissions.
+            </div>
+        </section>
+
+        <section>
+            <h2>Getting Started</h2>
+            
+            <h3>System Requirements</h3>
+            <ul>
+                <li>Computer or tablet with internet access</li>
+                <li>Modern web browser (Chrome, Firefox, Safari, or Edge)</li>
+                <li>Working internet connection</li>
+            </ul>
+            
+            <h3>Accessing the System</h3>
+            <div class="step">
+                <span class="step-number">1</span> Open your web browser and navigate to the ECLOF Kenya Kiva Profile System.
+            </div>
+            <div class="step">
+                <span class="step-number">2</span> For administrators, click on "Admin Login" in the top-right corner.
+            </div>
+            <div class="step">
+                <span class="step-number">3</span> Enter your username and password provided by the system administrator.
+            </div>
+        </section>
+
+        <section>
+            <h2>Collecting Borrower Information</h2>
+            
+            <div class="tip">
+                <strong>Tip:</strong> Before starting, ensure you have the borrower present and that they understand the purpose of collecting their information for Kiva.
+            </div>
+            
+            <h3>Starting a New Submission</h3>
+            <div class="step">
+                <span class="step-number">1</span> From the main page, click on "Start New Submission."
+            </div>
+            <div class="step">
+                <span class="step-number">2</span> Fill in the basic information at the top of the form (Name, Branch, Client ID, Loan Amount, and Group Name if applicable).
+            </div>
+            
+            <h3>Uploading a Profile Image</h3>
+            <div class="step">
+                <span class="step-number">1</span> In the Profile Image section, click "Choose Image" to select a photo of the borrower.
+            </div>
+            <div class="step">
+                <span class="step-number">2</span> Select a clear, well-lit photo that shows the borrower's face or the borrower engaged in their business activity.
+            </div>
+            <div class="step">
+                <span class="step-number">3</span> Once selected, the image will appear in the preview area.
+            </div>
+            
+            <div class="warning">
+                <strong>Important:</strong> The profile image is a crucial element for connecting with potential lenders. Ensure it is clear, appropriate, and the borrower has consented to its use.
+            </div>
+            
+            <h3>Completing the Form Fields</h3>
+            <p>Guide the borrower through answering the following sections:</p>
+            <ul class="checklist">
+                <li><strong>Background Details:</strong> Personal information including age, family situation, etc.</li>
+                <li><strong>Business Description:</strong> Details about their business and what they enjoy about it</li>
+                <li><strong>Loan Purpose:</strong> Specific uses for the requested loan</li>
+                <li><strong>Challenges and Plans:</strong> Current challenges and how the loan will help</li>
+                <li><strong>Community Contribution:</strong> How their business benefits the local community</li>
+                <li><strong>Previous Loans:</strong> Details of any past ECLOF loans and repayment history</li>
+                <li><strong>Future Plans:</strong> Aspirations and future goals</li>
+                <li><strong>Additional Comments:</strong> Any message they'd like to share with potential lenders</li>
+            </ul>
+            
+            <div class="tip">
+                <strong>Tip:</strong> Encourage borrowers to be specific and provide concrete details. For example, instead of "buy inventory," specify "purchase 50kg of maize seeds and organic fertilizer."
+            </div>
+            
+            <h3>Obtaining Digital Consent</h3>
+            <div class="step">
+                <span class="step-number">1</span> Read the waiver text to the borrower, ensuring they understand that their story and photo will be shared on the internet.
+            </div>
+            <div class="step">
+                <span class="step-number">2</span> Have the borrower sign in the signature box using their finger (on a touchscreen) or mouse.
+            </div>
+            <div class="step">
+                <span class="step-number">3</span> Complete the additional fields: Client Print Name, Date, and Address.
+            </div>
+            <div class="step">
+                <span class="step-number">4</span> If the borrower cannot read the form themselves, complete the verbal consent section with your signature as the ECLOF Kenya representative.
+            </div>
+            
+            <div class="warning">
+                <strong>Important:</strong> Without a signature on the client waiver, the borrower's profile cannot be posted on Kiva.
+            </div>
+        </section>
+
+        <section>
+            <h2>Submitting and Managing Profiles</h2>
+            
+            <h3>Submitting the Form</h3>
+            <div class="step">
+                <span class="step-number">1</span> Review all information with the borrower to ensure accuracy.
+            </div>
+            <div class="step">
+                <span class="step-number">2</span> Click the "Submit Form" button at the bottom of the page.
+            </div>
+            <div class="step">
+                <span class="step-number">3</span> Wait for confirmation that the submission was successful.
+            </div>
+            
+            <h3>Accessing the Admin Dashboard</h3>
+            <div class="step">
+                <span class="step-number">1</span> Log in to the admin section as described in "Getting Started."
+            </div>
+            <div class="step">
+                <span class="step-number">2</span> The dashboard displays all submissions with filtering and search options.
+            </div>
+            
+            <h3>Generating Professional Profiles</h3>
+            <div class="step">
+                <span class="step-number">1</span> From the admin dashboard, click on a submission to view its details.
+            </div>
+            <div class="step">
+                <span class="step-number">2</span> Click the "Generate Professional Profile" button.
+            </div>
+            <div class="step">
+                <span class="step-number">3</span> Wait while the system processes the information (this typically takes 15-30 seconds).
+            </div>
+            <div class="step">
+                <span class="step-number">4</span> Review the generated profile, which will appear below the submission details.
+            </div>
+            
+            <div class="tip">
+                <strong>Tip:</strong> The system automatically corrects grammar, improves language quality, and formats the profile according to Kiva's best practices.
+            </div>
+        </section>
+
+        <section>
+            <h2>Working with Generated Profiles</h2>
+            
+            <h3>Editing Profiles</h3>
+            <div class="step">
+                <span class="step-number">1</span> After a profile is generated, click the "Edit Profile" button.
+            </div>
+            <div class="step">
+                <span class="step-number">2</span> Make any necessary changes to the text in the editor that appears.
+            </div>
+            <div class="step">
+                <span class="step-number">3</span> Click "Save Changes" to update the profile.
+            </div>
+            
+            <h3>Exporting Profiles</h3>
+            <div class="step">
+                <span class="step-number">1</span> To save a profile as a PDF, click the "Export as PDF" button.
+            </div>
+            <div class="step">
+                <span class="step-number">2</span> Choose a location on your computer to save the file.
+            </div>
+            <div class="step">
+                <span class="step-number">3</span> The PDF will include the borrower's photo, profile text, and key information.
+            </div>
+            
+            <h3>Copying Profile Text</h3>
+            <div class="step">
+                <span class="step-number">1</span> To copy just the text of the profile, click the "Copy Profile" button.
+            </div>
+            <div class="step">
+                <span class="step-number">2</span> The profile text is now on your clipboard and can be pasted into any document or system.
+            </div>
+        </section>
+
+        <section>
+            <h2>Best Practices</h2>
+            
+            <h3>Writing Effective Borrower Descriptions</h3>
+            <ul class="checklist">
+                <li>Encourage borrowers to be specific about their business and loan use</li>
+                <li>Ask follow-up questions to get concrete details and numbers</li>
+                <li>Include personal elements that help lenders connect with borrowers</li>
+                <li>Document challenges honestly but with an emphasis on solutions</li>
+                <li>Highlight community impact and social benefits of the business</li>
+            </ul>
+            
+            <h3>Taking Quality Profile Photos</h3>
+            <ul class="checklist">
+                <li>Use good lighting - natural daylight works best</li>
+                <li>Ensure the borrower's face is clearly visible</li>
+                <li>Consider including elements of their business in the photo</li>
+                <li>Avoid busy or distracting backgrounds</li>
+                <li>Take multiple photos and select the best one</li>
+            </ul>
+            
+            <div class="note">
+                <strong>Note:</strong> The system follows guidelines from the "NLP.md" document to ensure profiles are properly formatted, corrected for errors, and include engaging elements like appropriate puns.
+            </div>
+        </section>
+
+        <div class="footer">
+            <p>© ECLOF Kenya Limited, Kiva's field partner. All rights reserved.</p>
+            <p>For technical support, please contact your system administrator.</p>
+            <p>Last updated: April 9, 2025</p>
+        </div>
+    </div>
+</body>
+</html>
