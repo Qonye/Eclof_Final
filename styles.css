@@ -610,3 +610,86 @@ button[type="button"] {
         padding: 20px;
     }
 }
+
+/* Footer Styles */
+.site-footer {
+    margin-top: 40px;
+    padding: 10px 0;
+    border-top: 1px solid #ddd;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.admin-link-container {
+    text-align: right;
+}
+
+.admin-link {
+    color: #999;
+    text-decoration: none;
+    font-size: 0.85em;
+    transition: color 0.3s ease;
+}
+
+.admin-link:hover {
+    color: #004f71;
+    text-decoration: underline;
+}
+
+/* Admin Access Dialog */
+.admin-dialog {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.admin-dialog-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    width: 100%;
+}
+
+.admin-dialog h3 {
+    color: #004f71;
+    margin-top: 0;
+}
+
+.admin-dialog-buttons {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.admin-dialog-buttons button {
+    margin-left: 10px;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.admin-dialog-buttons .cancel-btn {
+    background-color: #f1f1f1;
+    color: #333;
+}
+
+.admin-dialog-buttons .confirm-btn {
+    background-color: #004f71;
+    color: white;
+}
