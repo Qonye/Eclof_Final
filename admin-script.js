@@ -330,6 +330,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Display the modal
                 submissionModal.style.display = 'block';
+                
+                // Add load event listeners to all images
+                setTimeout(addImageLoadEventListeners, 100);
             })
             .catch(error => {
                 console.error('Error loading submission details:', error);
@@ -440,27 +443,65 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             
             if (submission.profileImagePath) {
+                // Fix path handling - if it contains absolute path
+                let profileImagePath = submission.profileImagePath;
+                if (profileImagePath.includes('C:') || profileImagePath.includes('\\')) {
+                    // Extract just the filename
+                    const pathParts = profileImagePath.split(/[\\\/]/).filter(Boolean);
+                    const filename = pathParts[pathParts.length - 1];
+                    profileImagePath = `uploads/${filename}`;
+                }
+                
                 detailsHTML += `
                     <div class="image-container">
-                        <img src="/${submission.profileImagePath}" alt="Profile Image">
+                        <img src="${profileImagePath}" alt="Profile Image" id="profileImage">
                         <div class="image-label">Profile Photo</div>
+                        <div class="image-actions">
+                            <button class="image-action-btn download-image" data-image-type="profile">Download</button>
+                            <button class="image-action-btn replace-image" data-image-type="profile">Replace Image</button>
+                        </div>
+                        <div class="image-upload-container" id="profileImageUpload" style="display: none;">
+                            <input type="file" id="newProfileImage" class="new-image-input" accept="image/*">
+                            <div class="upload-actions">
+                                <button class="upload-btn" data-image-type="profile">Upload</button>
+                                <button class="cancel-upload-btn" data-image-type="profile">Cancel</button>
+                            </div>
+                        </div>
                     </div>
                 `;
             }
             
             if (data.clientSignatureImagePath) {
+                // Fix path handling for client signature
+                const signatureImagePath = data.clientSignatureImagePath.startsWith('/') 
+                    ? data.clientSignatureImagePath.substring(1) 
+                    : data.clientSignatureImagePath;
+                    
+                const signatureImageUrl = signatureImagePath.startsWith('http') 
+                    ? signatureImagePath 
+                    : `${window.location.origin}/${signatureImagePath}`;
+                    
                 detailsHTML += `
                     <div class="image-container">
-                        <img src="/${data.clientSignatureImagePath}" alt="Client Signature">
+                        <img src="${signatureImageUrl}" alt="Client Signature" id="clientSignatureImage">
                         <div class="image-label">Client Signature</div>
                     </div>
                 `;
             }
             
             if (data.repSignatureImagePath) {
+                // Fix path handling for rep signature
+                const repSignatureImagePath = data.repSignatureImagePath.startsWith('/') 
+                    ? data.repSignatureImagePath.substring(1) 
+                    : data.repSignatureImagePath;
+                    
+                const repSignatureImageUrl = repSignatureImagePath.startsWith('http') 
+                    ? repSignatureImagePath 
+                    : `${window.location.origin}/${repSignatureImagePath}`;
+                    
                 detailsHTML += `
                     <div class="image-container">
-                        <img src="/${data.repSignatureImagePath}" alt="Representative Signature">
+                        <img src="${repSignatureImageUrl}" alt="Representative Signature" id="repSignatureImage">
                         <div class="image-label">Representative Signature</div>
                     </div>
                 `;
@@ -474,6 +515,240 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Set the HTML to the submission details element
         submissionDetails.innerHTML = detailsHTML;
+        
+        // Attach event listeners for image management
+        attachImageActionListeners();
+    }
+
+    // Attach event listeners for image actions
+    function attachImageActionListeners() {
+        // Download image buttons
+        const downloadButtons = document.querySelectorAll('.download-image');
+        downloadButtons.forEach(button => {
+            button.addEventListener('click', handleImageDownload);
+        });
+        
+        // Replace image buttons
+        const replaceButtons = document.querySelectorAll('.replace-image');
+        replaceButtons.forEach(button => {
+            button.addEventListener('click', showImageUpload);
+        });
+        
+        // Upload buttons
+        const uploadButtons = document.querySelectorAll('.upload-btn');
+        uploadButtons.forEach(button => {
+            button.addEventListener('click', handleImageUpload);
+        });
+        
+        // Cancel upload buttons
+        const cancelButtons = document.querySelectorAll('.cancel-upload-btn');
+        cancelButtons.forEach(button => {
+            button.addEventListener('click', hideImageUpload);
+        });
+    }
+
+    // Handle image download
+    function handleImageDownload(e) {
+        const imageType = e.target.getAttribute('data-image-type');
+        let imageElement;
+        
+        switch(imageType) {
+            case 'profile':
+                imageElement = document.getElementById('profileImage');
+                break;
+            case 'clientSignature':
+                imageElement = document.getElementById('clientSignatureImage');
+                break;
+            case 'repSignature':
+                imageElement = document.getElementById('repSignatureImage');
+                break;
+            default:
+                console.error('Unknown image type');
+                return;
+        }
+        
+        if (!imageElement || !imageElement.src) {
+            alert('Image not available for download.');
+            return;
+        }
+        
+        // Show loading state
+        const originalButtonText = e.target.textContent;
+        e.target.textContent = 'Downloading...';
+        e.target.disabled = true;
+        
+        // Fix the image path if it contains an absolute file path
+        let imageSrc = imageElement.src;
+        
+        // Extract the filename from the path
+        let filename = '';
+        
+        // Check for absolute paths like /C:/projects/...
+        if (imageSrc.includes('/C:') || imageSrc.includes('\\C:')) {
+            // Get just the filename from the absolute path
+            const pathParts = imageSrc.split('/').filter(Boolean);
+            filename = pathParts[pathParts.length - 1];
+            
+            // Create a proper URL for the uploads folder
+            imageSrc = `${window.location.origin}/uploads/${filename}`;
+            console.log("Fixing absolute path. New path:", imageSrc);
+        } else {
+            // Regular relative URL
+            const urlParts = imageSrc.split('/');
+            filename = urlParts[urlParts.length - 1].split('?')[0];
+        }
+        
+        if (!filename) {
+            filename = `${currentSubmissionId}_${imageType}.jpg`;
+        }
+        
+        // Download using fetch API which has better cross-browser support for binary data
+        fetch(imageSrc)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                // Create a blob URL and trigger download
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                
+                // Clean up
+                setTimeout(() => {
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(link);
+                    
+                    // Reset button state
+                    e.target.textContent = originalButtonText;
+                    e.target.disabled = false;
+                }, 100);
+            })
+            .catch(error => {
+                console.error('Error downloading image:', error);
+                alert('Failed to download image. Please try again later.');
+                
+                // Reset button state
+                e.target.textContent = originalButtonText;
+                e.target.disabled = false;
+                
+                // As a fallback for direct download
+                console.log("Attempting direct download as fallback...");
+                window.open(imageSrc, '_blank');
+            });
+    }
+
+    // Show image upload interface
+    function showImageUpload(e) {
+        const imageType = e.target.getAttribute('data-image-type');
+        const uploadContainer = document.getElementById(`${imageType}ImageUpload`);
+        
+        if (uploadContainer) {
+            uploadContainer.style.display = 'block';
+            e.target.style.display = 'none';
+        }
+    }
+
+    // Hide image upload interface
+    function hideImageUpload(e) {
+        const imageType = e.target.getAttribute('data-image-type');
+        const uploadContainer = document.getElementById(`${imageType}ImageUpload`);
+        const replaceButton = document.querySelector(`.replace-image[data-image-type="${imageType}"]`);
+        
+        if (uploadContainer) {
+            uploadContainer.style.display = 'none';
+        }
+        
+        if (replaceButton) {
+            replaceButton.style.display = 'inline-block';
+        }
+    }
+
+    // Handle image upload and replacement
+    function handleImageUpload(e) {
+        const imageType = e.target.getAttribute('data-image-type');
+        const fileInput = document.getElementById(`new${imageType.charAt(0).toUpperCase() + imageType.slice(1)}Image`);
+        
+        if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+            alert('Please select an image to upload.');
+            return;
+        }
+        
+        const file = fileInput.files[0];
+        
+        // Check if it's an image
+        if (!file.type.startsWith('image/')) {
+            alert('Please select a valid image file.');
+            return;
+        }
+        
+        // Create FormData to send the file
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('imageType', imageType);
+        formData.append('submissionId', currentSubmissionId);
+        
+        // Show loading indicator
+        e.target.textContent = 'Uploading...';
+        e.target.disabled = true;
+        
+        // Log the upload attempt
+        console.log(`Uploading ${imageType} image for submission ${currentSubmissionId}`);
+        console.log(`File: ${file.name}, Size: ${file.size}, Type: ${file.type}`);
+        
+        // Upload the image
+        fetch(`/api/admin/submissions/${currentSubmissionId}/image`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Failed to upload image: ${response.status} ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Upload successful:', data);
+            
+            // Update the image on the page
+            const imageElement = document.getElementById(`${imageType}Image`);
+            
+            if (imageElement) {
+                // Add timestamp query parameter to force refresh of cached image
+                const newImageUrl = data.imagePath.startsWith('/') ? data.imagePath : `/${data.imagePath}`;
+                imageElement.src = `${newImageUrl}?t=${new Date().getTime()}`;
+                console.log('Updated image src to:', imageElement.src);
+            }
+            
+            // Hide upload interface
+            const uploadContainer = document.getElementById(`${imageType}ImageUpload`);
+            if (uploadContainer) {
+                uploadContainer.style.display = 'none';
+            }
+            
+            // Show replace button again
+            const replaceButton = document.querySelector(`.replace-image[data-image-type="${imageType}"]`);
+            if (replaceButton) {
+                replaceButton.style.display = 'inline-block';
+            }
+            
+            // Show success message
+            alert('Image successfully updated!');
+        })
+        .catch(error => {
+            console.error('Error uploading image:', error);
+            alert(`Failed to upload image: ${error.message}`);
+        })
+        .finally(() => {
+            // Reset button
+            e.target.textContent = 'Upload';
+            e.target.disabled = false;
+        });
     }
 
     // Close the submission details modal
@@ -575,4 +850,26 @@ document.addEventListener('DOMContentLoaded', function() {
             closeSubmissionModal();
         }
     });
+    
+    // Debug function to help troubleshoot image loading issues
+    function addImageLoadEventListeners() {
+        const images = document.querySelectorAll('.submission-details img');
+        images.forEach(img => {
+            img.addEventListener('load', function() {
+                console.log('Image loaded successfully:', this.src);
+            });
+            
+            img.addEventListener('error', function() {
+                console.error('Failed to load image:', this.src);
+                // Replace with a placeholder image
+                this.src = 'images/image-placeholder.png';
+                // Add a message below the image
+                const errorMsg = document.createElement('p');
+                errorMsg.textContent = 'Image could not be loaded. It may be available after profile generation.';
+                errorMsg.style.color = 'red';
+                errorMsg.style.fontSize = '0.8em';
+                this.parentNode.insertBefore(errorMsg, this.nextSibling);
+            });
+        });
+    }
 });
