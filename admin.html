@@ -37,57 +37,63 @@
         </div>
 
         <div class="admin-dashboard" id="adminDashboard" style="display: none;">
-            <div class="dashboard-header">
-                <h2>Borrower Profile Submissions</h2>
-                <div class="dashboard-controls">
-                    <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="Search by name, ID or branch...">
-                        <button id="searchButton" class="admin-button">Search</button>
+            <div class="dashboard-container">
+                <aside class="admin-sidebar">
+                    <!-- Documentation Links in Dashboard -->
+                    <div class="dashboard-documentation">
+                        <a href="ECLOF_Kenya_System_Overview.html" target="_blank" class="doc-link">System Overview</a>
+                        <a href="ECLOF_Kenya_User_Guide.html" target="_blank" class="doc-link">User Guide</a>
                     </div>
-                    <div class="filter-box">
-                        <label for="dateFilter">Date Range:</label>
-                        <input type="date" id="startDate">
-                        <input type="date" id="endDate">
-                        <button id="filterDates" class="admin-button">Filter</button>
-                    </div>
-                    <button id="resetFilters" class="admin-button secondary">Reset Filters</button>
                     <button id="logoutButton" class="admin-button danger">Logout</button>
+                </aside>
+
+                <div class="dashboard-main">
+                    <div class="dashboard-header">
+                        <h2>Borrower Profile Submissions</h2>
+                        <div class="dashboard-controls">
+                            <div class="search-box">
+                                <input type="text" id="searchInput" placeholder="Search by name, ID or branch...">
+                                <button id="searchButton" class="admin-button">Search</button>
+                            </div>
+                            <div class="filter-box">
+                                <label for="dateFilter">Date Range:</label>
+                                <input type="date" id="startDate">
+                                <input type="date" id="endDate">
+                                <button id="filterDates" class="admin-button">Filter</button>
+                            </div>
+                            <button id="resetFilters" class="admin-button secondary">Reset Filters</button>
+                        </div>
+                    </div>
+
+                    <div class="submissions-count">
+                        <span id="totalSubmissions">0</span> submissions found
+                    </div>
+
+                    <div class="submissions-table-container">
+                        <table class="submissions-table">
+                            <thead>
+                                <tr>
+                                    <th>Submission ID</th>
+                                    <th>Date</th>
+                                    <th>Borrower Name</th>
+                                    <th>Branch</th>
+                                    <th>Loan Amount</th>
+                                    <th>Client ID</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="submissionsTableBody">
+                                <!-- Submission rows will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination">
+                        <button id="prevPage" class="admin-button secondary" disabled>Previous</button>
+                        <span id="pageInfo">Page 1 of 1</span>
+                        <button id="nextPage" class="admin-button secondary" disabled>Next</button>
+                    </div>
                 </div>
-            </div>
-            
-            <!-- Documentation Links in Dashboard -->
-            <div class="dashboard-documentation">
-                <a href="ECLOF_Kenya_System_Overview.html" target="_blank" class="doc-link">System Overview</a>
-                <a href="ECLOF_Kenya_User_Guide.html" target="_blank" class="doc-link">User Guide</a>
-            </div>
-
-            <div class="submissions-count">
-                <span id="totalSubmissions">0</span> submissions found
-            </div>
-
-            <div class="submissions-table-container">
-                <table class="submissions-table">
-                    <thead>
-                        <tr>
-                            <th>Submission ID</th>
-                            <th>Date</th>
-                            <th>Borrower Name</th>
-                            <th>Branch</th>
-                            <th>Loan Amount</th>
-                            <th>Client ID</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="submissionsTableBody">
-                        <!-- Submission rows will be populated here -->
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="pagination">
-                <button id="prevPage" class="admin-button secondary" disabled>Previous</button>
-                <span id="pageInfo">Page 1 of 1</span>
-                <button id="nextPage" class="admin-button secondary" disabled>Next</button>
             </div>
         </div>
 

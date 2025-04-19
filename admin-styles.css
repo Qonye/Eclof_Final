@@ -737,3 +737,28 @@ h2 {
         margin-bottom: 0;
     }
 }
+
+/* Add these styles at the end to lay out sidebar + main area */
+.dashboard-container {
+  display: flex;
+  gap: 20px;
+}
+.admin-sidebar {
+  width: 220px;
+  background-color: var(--eclof-light-gray);
+  padding: 20px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.dashboard-main {
+  flex-grow: 1;
+}
+/* Sidebar links & logout */
+.admin-sidebar .doc-link {
+  display: block;
+  margin: 8px 0;
+}
+.admin-sidebar #logoutButton {
+  margin-top: 20px;
+  width: 100%;
+}
