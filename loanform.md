@@ -1,4 +1,4 @@
-**Kiva Borrower Profile – Template**
+# Kiva Borrower Profile – Template
 
 | **Name** | **Branch** | **Client ID(system)** | **Loan Amount** | **Group Name** |
 | --- | --- | --- | --- | --- |
@@ -13,7 +13,7 @@
 | What are your hopes and dreams for the future, or for your children’s future? How can the loan help you achieve these? |
 | Anything else you would like to say to the people across the world who are making the loan? |
 
-**Client Waiver Form (Loan Description and Photo Waiver) – Individual Signature**
+## Client Waiver Form (Loan Description and Photo Waiver) – Individual Signature
 
 Original Materials, Interviews, Film, Photos, Tape and Video Consent and Release
 
@@ -29,7 +29,7 @@ Client Print Name: Date:
 
 Address: ­­­­­ \__
 
-![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAAKAgMAAAAV0ciaAAAAAXNSR0IArs4c6QAAAAZQTFRFwMDAAAAAK9ehpgAAAAxjbVBQSkNtcDA3MTICKAAIQ4V15wAAAAF0Uk5TAEDm2GYAAAAkSURBVDjLY2AYBaOARoAVRDA6gMgAECEyOAQHqbNGwSigEQAAoUwJV2wM87UAAAAASUVORK5CYII=)
+Add image
 
 **_\*\*The following is required if the consent form has to be read to the individual:_**
 

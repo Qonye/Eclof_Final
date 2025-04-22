@@ -1,0 +1,666 @@
+/* 
+  Bundled and prefixed styles for the ECLOF Plugin.
+  Derived from ../styles.css and ../admin-styles.css
+  
+  NOTE: This is a representative sample. For full implementation,
+  use PostCSS with postcss-prefix-selector as described in instructions.
+*/
+
+/* --- Global Variables (Applied to container for better isolation) --- */
+.eclof-plugin-container {
+    --eclof-green: #008751;
+    --eclof-blue: #004f71;
+    --eclof-light-green: #99c355;
+    --eclof-yellow: #ffd100;
+    --eclof-light-gray: #f5f5f5;
+    --eclof-dark-gray: #333333;
+    --admin-danger: #dc3545;
+    --admin-secondary: #6c757d;
+    --admin-success: #28a745;
+    --admin-warning: #ffc107;
+
+    /* Base styles applied directly */
+    background-color: white;
+    color: var(--eclof-dark-gray);
+    line-height: 1.6;
+    font-family: 'Arial', sans-serif;
+    border: 1px solid #ccc;
+    padding: 15px;
+    margin-bottom: 20px;
+    font-size: 15px; /* Base font size for plugin */
+}
+
+/* --- Base Styles (Prefixed) --- */
+.eclof-plugin-container * {
+    box-sizing: border-box;
+    /* More specific resets might be needed depending on host site */
+}
+
+/* --- Styles from styles.css (Prefixed Examples) --- */
+
+.eclof-plugin-container .profile-image-section {
+    margin: 20px auto;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: var(--eclof-light-gray);
+    text-align: center;
+}
+
+.eclof-plugin-container .image-upload-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.eclof-plugin-container .image-preview {
+    width: 150px;
+    height: 150px;
+    border: 2px dashed var(--eclof-blue);
+    border-radius: 50%;
+    margin-bottom: 15px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+}
+
+.eclof-plugin-container .image-preview img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.eclof-plugin-container .image-preview-text {
+    color: #777;
+    font-size: 14px;
+}
+
+.eclof-plugin-container .file-upload-label {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: var(--eclof-green);
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+.eclof-plugin-container .file-upload-label:hover {
+    background-color: #006b41;
+}
+
+.eclof-plugin-container input[type="file"] {
+    display: none;
+}
+
+/* .eclof-plugin-container .container { ... Omitted, styles applied to .eclof-plugin-container ... } */
+
+.eclof-plugin-container header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px; /* Adjusted */
+    padding-bottom: 15px; /* Adjusted */
+    border-bottom: 2px solid var(--eclof-green);
+}
+
+.eclof-plugin-container .logo {
+    max-width: 150px;
+    margin-bottom: 10px;
+}
+
+.eclof-plugin-container h1 {
+    color: var(--eclof-blue);
+    text-align: center;
+    font-size: 1.5em;
+    margin-bottom: 5px;
+}
+.eclof-plugin-container h2 {
+    color: var(--eclof-blue);
+    margin-bottom: 15px;
+    font-size: 1.3em;
+    border-bottom: 1px solid var(--eclof-light-green); /* Example adjustment */
+    padding-bottom: 5px;
+}
+.eclof-plugin-container h3 {
+    color: var(--eclof-blue);
+    margin-bottom: 10px;
+    font-size: 1.1em;
+    margin-top: 10px;
+}
+.eclof-plugin-container h4 {
+    color: var(--eclof-blue);
+    margin-bottom: 8px;
+    font-style: italic;
+}
+
+
+.eclof-plugin-container .form-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: var(--eclof-light-gray);
+}
+
+.eclof-plugin-container label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+    color: var(--eclof-blue);
+    font-size: 0.95em; /* Adjusted */
+}
+
+.eclof-plugin-container input[type="text"],
+.eclof-plugin-container input[type="number"],
+.eclof-plugin-container input[type="date"],
+.eclof-plugin-container textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em; /* Use relative size */
+    line-height: 1.4;
+}
+
+.eclof-plugin-container textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.eclof-plugin-container .basic-info {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+.eclof-plugin-container .basic-info th, .eclof-plugin-container .basic-info td {
+    border: 1px solid #ddd;
+    padding: 8px; /* Adjusted */
+    text-align: left;
+    font-size: 0.9em; /* Adjusted */
+}
+.eclof-plugin-container .basic-info th {
+    background-color: var(--eclof-green);
+    color: white;
+}
+
+.eclof-plugin-container .waiver-section {
+    margin-top: 30px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+.eclof-plugin-container .waiver-text {
+    margin-bottom: 15px;
+    text-align: justify;
+    font-size: 0.9em; /* Adjusted */
+}
+
+.eclof-plugin-container .bold {
+    font-weight: bold;
+}
+
+.eclof-plugin-container .signature-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Adjusted */
+    margin: 20px 0; /* Adjusted */
+    padding: 15px;
+    border: 1px dashed #ccc;
+    border-radius: 5px;
+}
+.eclof-plugin-container .signature-field {
+    margin-bottom: 10px; /* Adjusted */
+}
+.eclof-plugin-container .signature-box {
+    width: 100%;
+    height: 150px;
+    border: 1px solid #ccc;
+    margin: 5px 0 10px 0; /* Adjusted */
+    background-color: white;
+    cursor: crosshair;
+}
+.eclof-plugin-container .signature-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Adjusted minmax */
+    gap: 15px;
+}
+.eclof-plugin-container .form-group {
+    margin-bottom: 15px;
+}
+
+.eclof-plugin-container .verbal-consent {
+    margin-top: 25px; /* Adjusted */
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f0f0f0;
+}
+.eclof-plugin-container .representative-signature {
+    margin-top: 15px;
+}
+
+.eclof-plugin-container .important-note {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #fff3cd;
+    border-left: 5px solid var(--eclof-yellow);
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.eclof-plugin-container .form-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px; /* Adjusted */
+    margin-top: 25px; /* Adjusted */
+    padding-top: 15px; /* Adjusted */
+    border-top: 1px solid #ddd;
+}
+
+.eclof-plugin-container button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: background-color 0.3s;
+    margin: 5px;
+}
+.eclof-plugin-container button[type="submit"] {
+    background-color: var(--eclof-green);
+    color: white;
+}
+.eclof-plugin-container button[type="submit"]:hover {
+    background-color: #006b41;
+}
+.eclof-plugin-container button[type="reset"], .eclof-plugin-container button[type="button"] {
+    background-color: var(--eclof-blue);
+    color: white;
+}
+.eclof-plugin-container button[type="reset"]:hover, .eclof-plugin-container button[type="button"]:hover {
+    background-color: #003a54;
+}
+.eclof-plugin-container button[type="button"] {
+    padding: 8px 16px;
+    font-size: 0.9em; /* Adjusted */
+}
+.eclof-plugin-container .button-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* --- Styles from admin-styles.css (Prefixed Examples) --- */
+
+/* .eclof-plugin-container .admin-container { ... Omitted ... } */
+
+.eclof-plugin-container .admin-login {
+    max-width: 400px;
+    margin: 20px auto;
+    padding: 25px;
+    background-color: white; /* Already default */
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1); /* Adjusted */
+}
+
+.eclof-plugin-container .admin-button {
+    padding: 10px 18px;
+    background-color: var(--eclof-green);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+.eclof-plugin-container .admin-button:hover {
+    background-color: #006b41;
+}
+.eclof-plugin-container .admin-button.secondary {
+    background-color: var(--admin-secondary);
+}
+.eclof-plugin-container .admin-button.secondary:hover {
+    background-color: #5a6268;
+}
+.eclof-plugin-container .admin-button.danger {
+    background-color: var(--admin-danger);
+}
+.eclof-plugin-container .admin-button.danger:hover {
+    background-color: #bd2130;
+}
+.eclof-plugin-container .admin-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.eclof-plugin-container .login-error {
+    color: var(--admin-danger);
+    text-align: center;
+    margin-top: 15px;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.eclof-plugin-container .admin-dashboard {
+    padding: 15px 0;
+}
+.eclof-plugin-container .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+.eclof-plugin-container .dashboard-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+}
+.eclof-plugin-container .search-box {
+    display: flex;
+    gap: 10px;
+}
+.eclof-plugin-container .search-box input {
+    padding: 8px; /* Adjusted */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-width: 200px; /* Adjusted */
+}
+.eclof-plugin-container .filter-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.eclof-plugin-container .filter-box input[type="date"] {
+    padding: 8px; /* Adjusted */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.eclof-plugin-container .submissions-count {
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+.eclof-plugin-container .submissions-table-container {
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+.eclof-plugin-container .submissions-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.eclof-plugin-container .submissions-table th, 
+.eclof-plugin-container .submissions-table td {
+    border: 1px solid #ddd;
+    padding: 10px; /* Adjusted */
+    text-align: left;
+    font-size: 0.9em; /* Adjusted */
+}
+.eclof-plugin-container .submissions-table th {
+    background-color: var(--eclof-green);
+    color: white;
+}
+.eclof-plugin-container .submissions-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+.eclof-plugin-container .submissions-table tr:hover {
+    background-color: #e9e9e9; /* Adjusted hover */
+}
+.eclof-plugin-container .action-buttons {
+    display: flex;
+    gap: 5px;
+}
+.eclof-plugin-container .action-button {
+    padding: 5px 8px; /* Adjusted */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em; /* Adjusted */
+    color: white;
+}
+.eclof-plugin-container .view-button {
+    background-color: var(--eclof-blue);
+}
+.eclof-plugin-container .delete-button {
+    background-color: var(--admin-danger);
+}
+
+.eclof-plugin-container .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    gap: 10px; /* Adjusted */
+}
+.eclof-plugin-container .pagination button {
+    padding: 5px 10px; /* Adjusted */
+}
+.eclof-plugin-container .pagination span {
+    font-size: 0.9em;
+}
+
+
+/* --- Modal Styles (Prefixed, Position needs care) --- */
+/* Modals often need to overlay the *entire* page, not just the plugin container. */
+/* Keeping position:fixed might be necessary, but ensure z-index is high enough */
+/* and that the modal content itself is styled via prefixed classes. */
+.modal { /* Keep global if it must overlay everything */
+    display: none;
+    position: fixed;
+    z-index: 10000; /* High z-index */
+    left: 0; top: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
+    overflow-y: auto;
+}
+/* Style the content *within* the modal using the prefix */
+.eclof-plugin-container .modal-content {
+    position: relative;
+    background-color: white;
+    margin: 5% auto; /* Center vertically */
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    width: 80%;
+    max-width: 750px; /* Adjusted */
+    color: var(--eclof-dark-gray); /* Ensure text color is set */
+    font-family: 'Arial', sans-serif; /* Ensure font is set */
+    line-height: 1.6; /* Ensure line-height is set */
+}
+.eclof-plugin-container .close-modal {
+    position: absolute;
+    right: 15px; /* Adjusted */
+    top: 10px; /* Adjusted */
+    font-size: 24px; /* Adjusted */
+    font-weight: bold;
+    cursor: pointer;
+    color: #888;
+    background: none;
+    border: none;
+    padding: 0;
+    line-height: 1;
+}
+.eclof-plugin-container .close-modal:hover {
+    color: #333;
+}
+.eclof-plugin-container .submission-details {
+    margin: 20px 0;
+}
+.eclof-plugin-container .detail-section {
+    margin-bottom: 15px; /* Adjusted */
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+.eclof-plugin-container .detail-section:last-child {
+    border-bottom: none;
+}
+.eclof-plugin-container .detail-item {
+    display: flex;
+    margin-bottom: 8px; /* Adjusted */
+    font-size: 0.95em;
+}
+.eclof-plugin-container .detail-label {
+    font-weight: bold;
+    width: 180px; /* Adjusted */
+    flex-shrink: 0;
+    color: var(--eclof-blue); /* Added color */
+    padding-right: 10px;
+}
+.eclof-plugin-container .borrower-images {
+    display: grid; /* Use grid for better alignment */
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Adjusted */
+    gap: 15px;
+    margin: 20px 0;
+}
+.eclof-plugin-container .image-container {
+    /* width: 200px; */ /* Removed fixed width */
+    position: relative;
+    margin-bottom: 15px; /* Adjusted */
+    background-color: #f9f9f9;
+    padding: 10px; /* Adjusted */
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    text-align: center;
+}
+.eclof-plugin-container .image-container img {
+    max-width: 100%;
+    max-height: 200px; /* Limit height */
+    display: block;
+    margin: 0 auto 10px;
+    border: 1px solid #ddd;
+}
+.eclof-plugin-container .image-label {
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: var(--eclof-blue);
+    font-size: 0.9em;
+}
+.eclof-plugin-container .image-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px; /* Adjusted */
+    margin-top: 10px;
+}
+.eclof-plugin-container .image-action-btn {
+    padding: 5px 10px; /* Adjusted */
+    background-color: #f1f1f1;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em; /* Adjusted */
+    color: #333;
+    transition: all 0.3s ease;
+}
+/* ... other image action button styles ... */
+
+.eclof-plugin-container .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 25px; /* Adjusted */
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+/* --- Documentation Links (Prefixed) --- */
+.eclof-plugin-container .admin-documentation {
+    margin-top: 15px; /* Adjusted */
+    padding-top: 10px; /* Adjusted */
+    border-top: 1px solid #ddd;
+    text-align: center;
+}
+.eclof-plugin-container .admin-documentation p {
+    color: #666;
+    margin-bottom: 5px; /* Adjusted */
+    font-size: 0.85em; /* Adjusted */
+}
+.eclof-plugin-container .doc-link {
+    display: inline-block;
+    margin: 0 8px; /* Adjusted */
+    color: #004f71;
+    text-decoration: none;
+    font-size: 0.85em; /* Adjusted */
+    padding: 4px 8px; /* Adjusted */
+    border-radius: 4px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    transition: all 0.3s ease;
+}
+.eclof-plugin-container .doc-link:hover {
+    background-color: #e0e0e0;
+    border-color: #ccc;
+    text-decoration: underline;
+}
+
+/* --- Dashboard Layout (Prefixed) --- */
+.eclof-plugin-container .dashboard-container {
+  display: flex;
+  gap: 15px;
+}
+.eclof-plugin-container .admin-sidebar {
+  width: 200px;
+  background-color: var(--eclof-light-gray);
+  padding: 15px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.eclof-plugin-container .dashboard-main {
+  flex-grow: 1;
+}
+.eclof-plugin-container .admin-sidebar .doc-link {
+  display: block;
+  margin: 6px 0;
+}
+.eclof-plugin-container .admin-sidebar #logoutButton { /* ID selectors might need prefixing too if not unique */
+  margin-top: 15px;
+  width: 100%;
+}
+
+
+/* --- Responsive Styles (Prefixed) --- */
+/* Ensure media queries target prefixed selectors */
+@media (max-width: 768px) {
+    .eclof-plugin-container .form-actions {
+        flex-direction: column;
+    }
+    .eclof-plugin-container button {
+        width: 100%;
+        margin: 5px 0; /* Stacked buttons */
+    }
+    .eclof-plugin-container .dashboard-container {
+        flex-direction: column;
+    }
+    .eclof-plugin-container .admin-sidebar {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+    .eclof-plugin-container .dashboard-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .eclof-plugin-container .search-box, .eclof-plugin-container .filter-box {
+        width: 100%;
+    }
+    /* ... More prefixed responsive rules ... */
+
+    /* Responsive table adjustments */
+    .eclof-plugin-container .submissions-table thead {
+        /* display: none; */ /* Keep headers for context if possible */
+    }
+    .eclof-plugin-container .submissions-table, 
+    .eclof-plugin-container .submissions-table tbody, 
+    .eclof-plugin-container .submissions-table tr,
+    .eclof-plugin-container .submissions-table td {
+        /* display: block; */ /* Avoid block display if possible, use overflow */
+    }
+     .eclof-plugin-container .submissions-table-container {
+         overflow-x: auto; /* Better mobile table handling */
+     }
+    /* ... Prefixed rules for mobile card view if using that approach ... */
+}
+
+/* ... etc for all rules and media queries ... */

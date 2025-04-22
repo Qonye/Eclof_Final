@@ -1,3 +1,5 @@
+# Borrower Summary Guidelines
+
 1.) Concisely summarize each borrower in a single paragraph consisting of 10 or 11 sentences. Number each summary and emphasize the borrower's name in \*\*bold\*\*.
 
 DO NOT NUMBER THE PARAGRAPHS FOR EACH BORROWER.
