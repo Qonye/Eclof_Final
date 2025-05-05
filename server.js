@@ -9,8 +9,19 @@ const { generateProfile } = require('./profile-generator');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Enable CORS for client requests
-app.use(cors());
+// Enable CORS for specific origins
+const allowedOrigins = ['http://localhost:3000', 'http://127.0.0.1:5500']; // Add your frontend origin(s)
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  }
+}));
 
 // Serve static files from the current directory
 app.use(express.static(__dirname));
