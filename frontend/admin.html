@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECLOF Kenya - Admin Dashboard</title>
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+    <div class="admin-container">
+        <header>
+            <img src="images/logo.png" alt="ECLOF Kenya Logo" class="logo">
+            <h1>Kiva Borrower Profile Admin</h1>
+        </header>
+
+        <div class="admin-login" id="loginForm">
+            <h2>Administrator Login</h2>
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="admin-button">Login</button>
+            </form>
+            <div class="login-error" id="loginError"></div>
+            
+            <!-- Documentation Links -->
+            <div class="admin-documentation">
+                <p>Staff Resources:</p>
+                <a href="ECLOF_Kenya_System_Overview.html" target="_blank" class="doc-link">System Overview</a>
+                <a href="ECLOF_Kenya_User_Guide.html" target="_blank" class="doc-link">User Guide</a>
+            </div>
+        </div>
+
+        <div class="admin-dashboard" id="adminDashboard" style="display: none;">
+            <div class="dashboard-container">
+                <aside class="admin-sidebar">
+                    <!-- Documentation Links in Dashboard -->
+                    <div class="dashboard-documentation">
+                        <a href="ECLOF_Kenya_System_Overview.html" target="_blank" class="doc-link">System Overview</a>
+                        <a href="ECLOF_Kenya_User_Guide.html" target="_blank" class="doc-link">User Guide</a>
+                    </div>
+                    <button id="logoutButton" class="admin-button danger">Logout</button>
+                </aside>
+
+                <div class="dashboard-main">
+                    <div class="dashboard-header">
+                        <h2>Borrower Profile Submissions</h2>
+                        <div class="dashboard-controls">
+                            <div class="search-box">
+                                <input type="text" id="searchInput" placeholder="Search by name, ID or branch...">
+                                <button id="searchButton" class="admin-button">Search</button>
+                            </div>
+                            <div class="filter-box">
+                                <label for="dateFilter">Date Range:</label>
+                                <input type="date" id="startDate">
+                                <input type="date" id="endDate">
+                                <button id="filterDates" class="admin-button">Filter</button>
+                            </div>
+                            <button id="resetFilters" class="admin-button secondary">Reset Filters</button>
+                        </div>
+                    </div>
+
+                    <div class="submissions-count">
+                        <span id="totalSubmissions">0</span> submissions found
+                    </div>
+
+                    <div class="submissions-table-container">
+                        <table class="submissions-table">
+                            <thead>
+                                <tr>
+                                    <th>Submission ID</th>
+                                    <th>Date</th>
+                                    <th>Borrower Name</th>
+                                    <th>Branch</th>
+                                    <th>Loan Amount</th>
+                                    <th>Client ID</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="submissionsTableBody">
+                                <!-- Submission rows will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination">
+                        <button id="prevPage" class="admin-button secondary" disabled>Previous</button>
+                        <span id="pageInfo">Page 1 of 1</span>
+                        <button id="nextPage" class="admin-button secondary" disabled>Next</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submission Details Modal -->
+        <div id="submissionModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Borrower Profile Details</h2>
+                <div class="submission-details" id="submissionDetails">
+                    <!-- Details will be populated here -->
+                </div>
+                <div class="modal-actions">
+                    <button id="printSubmission" class="admin-button">Print</button>
+                    <button id="exportPDF" class="admin-button">Export PDF</button>
+                    <button id="deleteSubmission" class="admin-button danger">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin-script.js"></script>
+    <script src="admin-profile-generator.js"></script>
+</body>
+</html>
