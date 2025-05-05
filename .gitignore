@@ -1,23 +1,23 @@
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# Environment variables (now in backend)
+backend/.env
+backend/.env.local
+backend/.env.development.local
+backend/.env.test.local
+backend/.env.production.local
 
-# Node.js
-node_modules/
+# Node.js (now in backend)
+backend/node_modules/
 npm-debug.log
 yarn-debug.log
 yarn-error.log
 
-# Uploads directory (contains user-submitted files)
-uploads/
-submissions/
+# Uploads directory (now in backend)
+backend/uploads/
+backend/submissions/
 
-# IDEs and editors
+# IDEs and editors (usually kept at root, but can be specific)
 .idea/
-.vscode/
+.vscode/ # Keep at root unless you have separate settings
 *.swp
 *.swo
 
@@ -30,5 +30,5 @@ submissions/
 ehthumbs.db
 Thumbs.db
 
-# Documentation files
-*.md
+# Documentation files - Removed *.md as it's too broad.
+# Add specific generated documentation files if needed.
