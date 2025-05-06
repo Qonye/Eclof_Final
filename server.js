@@ -15,6 +15,10 @@ app.use(cors());
 // Serve static files from the current directory
 app.use(express.static(__dirname));
 
+// Serve uploads and submissions directories as static paths
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/submissions', express.static(path.join(__dirname, 'submissions')));
+
 // Configure storage for uploaded files
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -106,26 +110,35 @@ app.post('/api/submit', upload.single('profileImage'), (req, res) => {
 app.get('/api/admin/submissions', (req, res) => {
   try {
     const submissionsDir = path.join(__dirname, 'submissions');
-    
+    console.log('Looking for submissions in:', submissionsDir);
+
     // Check if submissions directory exists
     if (!fs.existsSync(submissionsDir)) {
+      console.log('Submissions directory does not exist.');
       return res.status(200).json([]);
     }
-    
+
     // Read all submission files
     const submissionFiles = fs.readdirSync(submissionsDir)
       .filter(file => file.endsWith('.json'));
-    
+
+    console.log('Found submission files:', submissionFiles);
+
+    if (submissionFiles.length === 0) {
+      console.log('No submission files found.');
+      return res.status(200).json([]);
+    }
+
     // Parse each submission file
     const submissions = submissionFiles.map(file => {
       const filePath = path.join(submissionsDir, file);
       const fileContent = fs.readFileSync(filePath, 'utf8');
       return JSON.parse(fileContent);
     });
-    
+
     // Sort by timestamp, newest first
     submissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
+
     res.status(200).json(submissions);
   } catch (error) {
     console.error('Error retrieving submissions:', error);
