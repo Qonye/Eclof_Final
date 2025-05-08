@@ -9,6 +9,18 @@ const { generateProfile } = require('./profile-generator');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Define base directories using environment variables or defaults
+const UPLOADS_DIR = process.env.UPLOADS_PATH || path.join(__dirname, 'uploads');
+const SUBMISSIONS_DIR = process.env.SUBMISSIONS_PATH || path.join(__dirname, 'submissions');
+
+// Ensure directories exist
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+if (!fs.existsSync(SUBMISSIONS_DIR)) {
+  fs.mkdirSync(SUBMISSIONS_DIR, { recursive: true });
+}
+
 // Enable CORS for client requests
 app.use(cors());
 
@@ -16,18 +28,17 @@ app.use(cors());
 app.use(express.static(__dirname));
 
 // Serve uploads and submissions directories as static paths
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/submissions', express.static(path.join(__dirname, 'submissions')));
+app.use('/uploads', express.static(UPLOADS_DIR));
+app.use('/submissions', express.static(SUBMISSIONS_DIR));
 
 // Configure storage for uploaded files
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadsDir = path.join(__dirname, 'uploads');
-    // Create uploads directory if it doesn't exist
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
+    // Create uploads directory if it doesn't exist (already handled above, but good for safety)
+    if (!fs.existsSync(UPLOADS_DIR)) {
+      fs.mkdirSync(UPLOADS_DIR, { recursive: true });
     }
-    cb(null, uploadsDir);
+    cb(null, UPLOADS_DIR);
   },
   filename: function (req, file, cb) {
     // Generate unique filename
@@ -52,14 +63,14 @@ app.post('/api/submit', upload.single('profileImage'), (req, res) => {
     // Process base64 images from signatures
     if (formData.clientSignatureImage) {
       const base64Data = formData.clientSignatureImage.replace(/^data:image\/png;base64,/, '');
-      const signatureFilename = `uploads/clientSignature-${Date.now()}.png`;
+      const signatureFilename = path.join(UPLOADS_DIR, `clientSignature-${Date.now()}.png`);
       fs.writeFileSync(signatureFilename, base64Data, 'base64');
       formData.clientSignatureImagePath = signatureFilename;
     }
     
     if (formData.repSignatureImage) {
       const base64Data = formData.repSignatureImage.replace(/^data:image\/png;base64,/, '');
-      const repSignatureFilename = `uploads/repSignature-${Date.now()}.png`;
+      const repSignatureFilename = path.join(UPLOADS_DIR, `repSignature-${Date.now()}.png`);
       fs.writeFileSync(repSignatureFilename, base64Data, 'base64');
       formData.repSignatureImagePath = repSignatureFilename;
     }
@@ -80,12 +91,12 @@ app.post('/api/submit', upload.single('profileImage'), (req, res) => {
       profileImagePath: req.file ? req.file.path : null
     };
     
-    const submissionsDir = path.join(__dirname, 'submissions');
-    if (!fs.existsSync(submissionsDir)) {
-      fs.mkdirSync(submissionsDir, { recursive: true });
+    // Ensure submissions directory exists (already handled above, but good for safety)
+    if (!fs.existsSync(SUBMISSIONS_DIR)) {
+      fs.mkdirSync(SUBMISSIONS_DIR, { recursive: true });
     }
     
-    const submissionFilePath = path.join(submissionsDir, `submission-${submissionId}.json`);
+    const submissionFilePath = path.join(SUBMISSIONS_DIR, `submission-${submissionId}.json`);
     fs.writeFileSync(submissionFilePath, JSON.stringify(submissionData, null, 2));
     
     // Return success response
@@ -109,17 +120,16 @@ app.post('/api/submit', upload.single('profileImage'), (req, res) => {
 // Get all submissions for admin dashboard
 app.get('/api/admin/submissions', (req, res) => {
   try {
-    const submissionsDir = path.join(__dirname, 'submissions');
-    console.log('Looking for submissions in:', submissionsDir);
+    console.log('Looking for submissions in:', SUBMISSIONS_DIR);
 
     // Check if submissions directory exists
-    if (!fs.existsSync(submissionsDir)) {
+    if (!fs.existsSync(SUBMISSIONS_DIR)) {
       console.log('Submissions directory does not exist.');
       return res.status(200).json([]);
     }
 
     // Read all submission files
-    const submissionFiles = fs.readdirSync(submissionsDir)
+    const submissionFiles = fs.readdirSync(SUBMISSIONS_DIR)
       .filter(file => file.endsWith('.json'));
 
     console.log('Found submission files:', submissionFiles);
@@ -131,7 +141,7 @@ app.get('/api/admin/submissions', (req, res) => {
 
     // Parse each submission file
     const submissions = submissionFiles.map(file => {
-      const filePath = path.join(submissionsDir, file);
+      const filePath = path.join(SUBMISSIONS_DIR, file);
       const fileContent = fs.readFileSync(filePath, 'utf8');
       return JSON.parse(fileContent);
     });
@@ -154,10 +164,9 @@ app.get('/api/admin/submissions', (req, res) => {
 app.get('/api/admin/submissions/:id', (req, res) => {
   try {
     const submissionId = req.params.id;
-    const submissionsDir = path.join(__dirname, 'submissions');
     
     // Find the submission file
-    const submissionFiles = fs.readdirSync(submissionsDir)
+    const submissionFiles = fs.readdirSync(SUBMISSIONS_DIR)
       .filter(file => file.includes(submissionId) && file.endsWith('.json'));
     
     if (submissionFiles.length === 0) {
@@ -168,7 +177,7 @@ app.get('/api/admin/submissions/:id', (req, res) => {
     }
     
     // Read the submission file
-    const filePath = path.join(submissionsDir, submissionFiles[0]);
+    const filePath = path.join(SUBMISSIONS_DIR, submissionFiles[0]);
     const fileContent = fs.readFileSync(filePath, 'utf8');
     const submission = JSON.parse(fileContent);
     
@@ -187,10 +196,9 @@ app.get('/api/admin/submissions/:id', (req, res) => {
 app.delete('/api/admin/submissions/:id', (req, res) => {
   try {
     const submissionId = req.params.id;
-    const submissionsDir = path.join(__dirname, 'submissions');
     
     // Find the submission file
-    const submissionFiles = fs.readdirSync(submissionsDir)
+    const submissionFiles = fs.readdirSync(SUBMISSIONS_DIR)
       .filter(file => file.includes(submissionId) && file.endsWith('.json'));
     
     if (submissionFiles.length === 0) {
@@ -201,7 +209,7 @@ app.delete('/api/admin/submissions/:id', (req, res) => {
     }
     
     // Read the submission file to get file paths before deleting
-    const filePath = path.join(submissionsDir, submissionFiles[0]);
+    const filePath = path.join(SUBMISSIONS_DIR, submissionFiles[0]);
     const fileContent = fs.readFileSync(filePath, 'utf8');
     const submission = JSON.parse(fileContent);
     
@@ -242,10 +250,9 @@ app.delete('/api/admin/submissions/:id', (req, res) => {
 app.post('/api/admin/generate-profile/:id', async (req, res) => {
   try {
     const submissionId = req.params.id;
-    const submissionsDir = path.join(__dirname, 'submissions');
     
     // Find the submission file
-    const submissionFiles = fs.readdirSync(submissionsDir)
+    const submissionFiles = fs.readdirSync(SUBMISSIONS_DIR)
       .filter(file => file.includes(submissionId) && file.endsWith('.json'));
     
     if (submissionFiles.length === 0) {
@@ -256,7 +263,7 @@ app.post('/api/admin/generate-profile/:id', async (req, res) => {
     }
     
     // Read the submission file
-    const filePath = path.join(submissionsDir, submissionFiles[0]);
+    const filePath = path.join(SUBMISSIONS_DIR, submissionFiles[0]);
     const fileContent = fs.readFileSync(filePath, 'utf8');
     const submission = JSON.parse(fileContent);
     
