@@ -3,6 +3,9 @@
 // without modifying existing functionality
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Define the base API URL
+    const BASE_API_URL = 'https://eclofprofileengine.up.railway.app'; // Your deployed backend URL
+
     // Wait for the main admin script to finish initializing
     setTimeout(initializeProfileGenerator, 1000);
     
@@ -114,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
             generateProfileButton.disabled = true;
             
             // Make API request to generate profile
-            fetch(`/api/admin/generate-profile/${window.currentSubmissionId}`, {
+            fetch(`${BASE_API_URL}/api/admin/generate-profile/${window.currentSubmissionId}`, {
                 method: 'POST'
             })
             .then(response => {
@@ -193,7 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 addImageFromSubmissionData(window.currentSubmissionData);
             } else {
                 // Fetch the submission data if we don't have it yet
-                fetch(`/api/admin/submissions/${window.currentSubmissionId}`)
+                fetch(`${BASE_API_URL}/api/admin/submissions/${window.currentSubmissionId}`)
                     .then(response => response.json())
                     .then(submission => {
                         window.currentSubmissionData = submission;
@@ -227,8 +230,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Extract just the filename from the path
                     const pathParts = imgSrc.split(/[\\\/]/);
                     const filename = pathParts[pathParts.length - 1];
-                    imgSrc = `/uploads/${filename}`;
+                    // Construct URL relative to the backend server
+                    imgSrc = `${BASE_API_URL}/uploads/${filename}`;
+                } else if (!imgSrc.startsWith('http') && !imgSrc.startsWith('/')) {
+                    // If it's just a filename, prepend the base URL and uploads path
+                    imgSrc = `${BASE_API_URL}/uploads/${imgSrc}`;
+                } else if (imgSrc.startsWith('/')) {
+                    // If it's a relative path from the server root
+                    imgSrc = `${BASE_API_URL}${imgSrc}`;
                 }
+                // If imgSrc already starts with http, assume it's a full URL and use as is
                 
                 img.src = imgSrc;
                 img.alt = 'Borrower Profile Image';
@@ -520,7 +531,8 @@ if (typeof window.viewSubmissionDetails === 'function') {
     window.originalViewSubmissionDetails = window.viewSubmissionDetails;
     
     window.viewSubmissionDetails = function(submissionId) {
-        currentSubmissionId = submissionId;
+        currentSubmissionId = submissionId; // This global is used by this script
+        window.currentSubmissionId = submissionId; // Ensure the global used by admin-script is also set
         
         if (typeof window.originalViewSubmissionDetails === 'function') {
             window.originalViewSubmissionDetails(submissionId);
@@ -528,7 +540,7 @@ if (typeof window.viewSubmissionDetails === 'function') {
         
         // If there's already a generated profile, display it
         setTimeout(() => {
-            fetch(`/api/admin/submissions/${submissionId}`)
+            fetch(`${BASE_API_URL}/api/admin/submissions/${submissionId}`)
                 .then(response => response.json())
                 .then(submission => {
                     currentSubmissionData = submission;
@@ -590,8 +602,15 @@ function displayGeneratedProfile(profileData) {
                     // Extract just the filename from the path
                     const pathParts = imgSrc.split(/[\\\/]/);
                     const filename = pathParts[pathParts.length - 1];
-                    imgSrc = `/uploads/${filename}`;
+                    imgSrc = `${BASE_API_URL}/uploads/${filename}`;
+                } else if (!imgSrc.startsWith('http') && !imgSrc.startsWith('/')) {
+                    // If it's just a filename, prepend the base URL and uploads path
+                    imgSrc = `${BASE_API_URL}/uploads/${imgSrc}`;
+                } else if (imgSrc.startsWith('/')) {
+                    // If it's a relative path from the server root
+                    imgSrc = `${BASE_API_URL}${imgSrc}`;
                 }
+                // If imgSrc already starts with http, assume it's a full URL and use as is
                 
                 img.src = imgSrc;
                 img.alt = 'Borrower Profile Image';

@@ -1,3 +1,5 @@
+require('dotenv').config(); // Load environment variables from .env file
+
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
@@ -10,8 +12,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Define base directories using environment variables or defaults
-const UPLOADS_DIR = process.env.UPLOADS_PATH || path.join(__dirname, 'uploads');
-const SUBMISSIONS_DIR = process.env.SUBMISSIONS_PATH || path.join(__dirname, 'submissions');
+const UPLOADS_DIR = process.env.UPLOADS_PATH ? path.resolve(process.env.UPLOADS_PATH) : path.join(__dirname, 'uploads');
+const SUBMISSIONS_DIR = process.env.SUBMISSIONS_PATH ? path.resolve(process.env.SUBMISSIONS_PATH) : path.join(__dirname, 'submissions');
 
 // Ensure directories exist
 try {

@@ -40,6 +40,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Make currentSubmissionId accessible globally for the profile generator
     window.currentSubmissionId = null;
 
+    const BASE_API_URL = 'https://eclofprofileengine.up.railway.app'; // Your deployed backend URL
+
     // Check if the user is already logged in
     checkLoginStatus();
 
@@ -105,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load submissions from the server
     function loadSubmissions() {
-        fetch('/api/admin/submissions')
+        fetch(`${BASE_API_URL}/api/admin/submissions`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to fetch submissions');
@@ -307,7 +309,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // View submission details
     function viewSubmissionDetails(submissionId) {
-        fetch(`/api/admin/submissions/${submissionId}`)
+        fetch(`${BASE_API_URL}/api/admin/submissions/${submissionId}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to fetch submission details');
@@ -702,7 +704,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(`File: ${file.name}, Size: ${file.size}, Type: ${file.type}`);
         
         // Upload the image
-        fetch(`/api/admin/submissions/${currentSubmissionId}/image`, {
+        fetch(`${BASE_API_URL}/api/admin/submissions/${currentSubmissionId}/image`, {
             method: 'POST',
             body: formData
         })
@@ -818,7 +820,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Delete a submission
     function deleteSubmission(submissionId) {
-        fetch(`/api/admin/submissions/${submissionId}`, {
+        fetch(`${BASE_API_URL}/api/admin/submissions/${submissionId}`, {
             method: 'DELETE'
         })
         .then(response => {
