@@ -72,25 +72,31 @@ app.post('/api/submit', upload.single('profileImage'), (req, res) => {
   try {
     // Get form data
     const formData = req.body;
+    console.log('Received submission data:', formData); // Log incoming data
     
     // Process base64 images from signatures
     if (formData.clientSignatureImage) {
       const base64Data = formData.clientSignatureImage.replace(/^data:image\/png;base64,/, '');
       const signatureFilename = path.join(UPLOADS_DIR, `clientSignature-${Date.now()}.png`);
+      console.log('Attempting to write client signature to:', signatureFilename);
       fs.writeFileSync(signatureFilename, base64Data, 'base64');
+      console.log('Client signature written successfully.');
       formData.clientSignatureImagePath = signatureFilename;
     }
     
     if (formData.repSignatureImage) {
       const base64Data = formData.repSignatureImage.replace(/^data:image\/png;base64,/, '');
       const repSignatureFilename = path.join(UPLOADS_DIR, `repSignature-${Date.now()}.png`);
+      console.log('Attempting to write rep signature to:', repSignatureFilename);
       fs.writeFileSync(repSignatureFilename, base64Data, 'base64');
+      console.log('Rep signature written successfully.');
       formData.repSignatureImagePath = repSignatureFilename;
     }
     
     // Add the profile image path to the form data if uploaded
     if (req.file) {
       formData.profileImagePath = req.file.path;
+      console.log('Profile image uploaded to:', req.file.path);
     }
     
     // Generate a submission ID
@@ -106,11 +112,14 @@ app.post('/api/submit', upload.single('profileImage'), (req, res) => {
     
     // Ensure submissions directory exists (already handled above, but good for safety)
     if (!fs.existsSync(SUBMISSIONS_DIR)) {
+      console.log('Submissions directory check: creating as it does not exist (unexpected at this stage).');
       fs.mkdirSync(SUBMISSIONS_DIR, { recursive: true });
     }
     
     const submissionFilePath = path.join(SUBMISSIONS_DIR, `submission-${submissionId}.json`);
+    console.log('Attempting to write submission JSON to:', submissionFilePath);
     fs.writeFileSync(submissionFilePath, JSON.stringify(submissionData, null, 2));
+    console.log('Submission JSON written successfully to:', submissionFilePath);
     
     // Return success response
     res.status(200).json({
