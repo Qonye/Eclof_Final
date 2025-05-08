@@ -530,7 +530,8 @@ window.resetSignatures = function() {
  */
 function submitFormToServer(formData) {
     // Set the server endpoint URL
-    const apiUrl = 'http://localhost:3000/api/submit';
+    // IMPORTANT: Replace 'YOUR_DEPLOYED_BACKEND_URL' with the actual URL of your Railway backend service
+    const apiUrl = 'YOUR_DEPLOYED_BACKEND_URL/api/submit'; 
     
     fetch(apiUrl, {
         method: 'POST',
