@@ -14,11 +14,24 @@ const UPLOADS_DIR = process.env.UPLOADS_PATH || path.join(__dirname, 'uploads');
 const SUBMISSIONS_DIR = process.env.SUBMISSIONS_PATH || path.join(__dirname, 'submissions');
 
 // Ensure directories exist
-if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-}
-if (!fs.existsSync(SUBMISSIONS_DIR)) {
-  fs.mkdirSync(SUBMISSIONS_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(UPLOADS_DIR)) {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    console.log(`Uploads directory created at: ${UPLOADS_DIR}`);
+  } else {
+    console.log(`Uploads directory already exists at: ${UPLOADS_DIR}`);
+  }
+  if (!fs.existsSync(SUBMISSIONS_DIR)) {
+    fs.mkdirSync(SUBMISSIONS_DIR, { recursive: true });
+    console.log(`Submissions directory created at: ${SUBMISSIONS_DIR}`);
+  } else {
+    console.log(`Submissions directory already exists at: ${SUBMISSIONS_DIR}`);
+  }
+} catch (error) {
+  console.error('Error creating initial directories:', error);
+  // If directories can't be created, the app might not function correctly.
+  // Depending on the severity, you might want to exit the process:
+  // process.exit(1); 
 }
 
 // Enable CORS for client requests
