@@ -8,6 +8,31 @@ const path = require('path');
 // Import the profile generator
 const { generateProfile } = require('./profile-generator');
 
+// Global Error Handlers - Add these early
+process.on('uncaughtException', (error) => {
+  console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+  console.error('Error name:', error.name);
+  console.error('Error message:', error.message);
+  console.error('Error stack:', error.stack);
+  // It's generally recommended to exit the process after an uncaught exception,
+  // as the application might be in an inconsistent state.
+  // Railway will likely restart it.
+  process.exit(1); 
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('UNHANDLED REJECTION! 💥 Shutting down...');
+  console.error('Promise:', promise);
+  console.error('Reason:', reason); // This could be an error object or any other value
+  if (reason instanceof Error) {
+    console.error('Reason name:', reason.name);
+    console.error('Reason message:', reason.message);
+    console.error('Reason stack:', reason.stack);
+  }
+  // Similar to uncaughtException, exiting might be the safest approach.
+  process.exit(1);
+});
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
