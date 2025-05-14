@@ -237,16 +237,20 @@ function initializeSignaturePad(elementId) {
     
     // Handle window resize to maintain proper canvas dimensions
     window.addEventListener('resize', function() {
-        // Store the drawing
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        
-        // Resize canvas
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
-        
-        // Restore the drawing
-        ctx.putImageData(imageData, 0, 0);
-        
+        // Only proceed if canvas has valid dimensions
+        if (canvas.width > 0 && canvas.height > 0) {
+            // Store the drawing
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            // Resize canvas
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+            // Restore the drawing
+            ctx.putImageData(imageData, 0, 0);
+        } else {
+            // Just resize canvas if invalid
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+        }
         // Reset context properties that are reset after resize
         ctx.lineWidth = 2;
         ctx.lineCap = 'round';
@@ -260,16 +264,20 @@ function initializeSignaturePad(elementId) {
             const height = entry.contentRect.height;
             
             if (canvas.width !== width || canvas.height !== height) {
-                // Store the drawing
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                
-                // Resize canvas
-                canvas.width = width;
-                canvas.height = height;
-                
-                // Restore the drawing
-                ctx.putImageData(imageData, 0, 0);
-                
+                // Only proceed if canvas has valid dimensions
+                if (canvas.width > 0 && canvas.height > 0) {
+                    // Store the drawing
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    // Resize canvas
+                    canvas.width = width;
+                    canvas.height = height;
+                    // Restore the drawing
+                    ctx.putImageData(imageData, 0, 0);
+                } else {
+                    // Just resize canvas if invalid
+                    canvas.width = width;
+                    canvas.height = height;
+                }
                 // Reset context properties
                 ctx.lineWidth = 2;
                 ctx.lineCap = 'round';
@@ -531,7 +539,7 @@ window.resetSignatures = function() {
 function submitFormToServer(formData) {
     // Set the server endpoint URL
     // IMPORTANT: Replace 'YOUR_DEPLOYED_RAILWAY_BACKEND_URL' with the actual URL of your Railway backend service
-    const apiUrl='https;//eclofprofileengine.up.railway.app/api/submit'; 
+    const apiUrl = 'https://eclofprofileengine.up.railway.app/api/submit'; 
     
     fetch(apiUrl, {
         method: 'POST',
