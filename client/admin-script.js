@@ -40,7 +40,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Make currentSubmissionId accessible globally for the profile generator
     window.currentSubmissionId = null;
 
-    const BASE_API_URL = 'https://eclofprofileengine.up.railway.app'; // Your deployed backend URL
+    // Dynamically set the API base URL based on environment
+    let BASE_API_URL;
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        // Local development server (adjust port if needed)
+        BASE_API_URL = 'http://localhost:3000';
+    } else {
+        // Deployed/production server
+        BASE_API_URL = 'https://eclofprofileengine.up.railway.app';
+    }
 
     // Check if the user is already logged in
     checkLoginStatus();
@@ -447,11 +456,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (submission.profileImagePath) {
                 // Fix path handling - if it contains absolute path
                 let profileImagePath = submission.profileImagePath;
-                if (profileImagePath.includes('C:') || profileImagePath.includes('\\')) {
+                if (profileImagePath.includes('C:') || profileImagePath.includes('\\') || profileImagePath.includes('/')) {
                     // Extract just the filename
                     const pathParts = profileImagePath.split(/[\\\/]/).filter(Boolean);
                     const filename = pathParts[pathParts.length - 1];
-                    profileImagePath = `uploads/${filename}`;
+                    // Dynamically set the correct image URL for local vs deployed
+                    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                        profileImagePath = `http://localhost:3000/uploads/${filename}`;
+                    } else {
+                        profileImagePath = `/uploads/${filename}`;
+                    }
                 }
                 
                 detailsHTML += `
@@ -517,7 +531,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Set the HTML to the submission details element
         submissionDetails.innerHTML = detailsHTML;
-        
+
+        // If a generated profile exists, display it in the modal
+        if (submission.generatedProfile && typeof window.displayGeneratedProfile === 'function') {
+            window.displayGeneratedProfile(submission.generatedProfile);
+        }
+
         // Attach event listeners for image management
         attachImageActionListeners();
     }
@@ -592,8 +611,11 @@ document.addEventListener('DOMContentLoaded', function() {
             filename = pathParts[pathParts.length - 1];
             
             // Create a proper URL for the uploads folder
-            imageSrc = `${window.location.origin}/uploads/${filename}`;
-            console.log("Fixing absolute path. New path:", imageSrc);
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                imageSrc = `http://localhost:3000/uploads/${filename}`;
+            } else {
+                imageSrc = `/uploads/${filename}`;
+            }
         } else {
             // Regular relative URL
             const urlParts = imageSrc.split('/');
@@ -848,10 +870,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Window click event to close modal if clicked outside
     window.addEventListener('click', function(event) {
+        // Only close if clicking the modal background, not the modal content or any child
         if (event.target === submissionModal) {
-            closeSubmissionModal();
+            if (!window.profileGenerationInProgress) {
+                closeSubmissionModal();
+            }
         }
     });
+    // Prevent modal from closing when clicking inside modal-content
+    const modalContent = document.querySelector('.modal-content');
+    if (modalContent) {
+        modalContent.addEventListener('click', function(event) {
+            event.stopPropagation();
+        });
+    }
     
     // Debug function to help troubleshoot image loading issues
     function addImageLoadEventListeners() {

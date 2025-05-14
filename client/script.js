@@ -537,10 +537,17 @@ window.resetSignatures = function() {
  * Submit form data to the server
  */
 function submitFormToServer(formData) {
-    // Set the server endpoint URL
-    // IMPORTANT: Replace 'YOUR_DEPLOYED_RAILWAY_BACKEND_URL' with the actual URL of your Railway backend service
-    const apiUrl = 'https://eclofprofileengine.up.railway.app/api/submit'; 
-    
+    // Dynamically set the server endpoint URL based on environment
+    let apiUrl;
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        // Local development server (adjust port if needed)
+        apiUrl = 'http://localhost:3000/api/submit';
+    } else {
+        // Deployed/production server
+        apiUrl = 'https://eclofprofileengine.up.railway.app/api/submit';
+    }
+
     fetch(apiUrl, {
         method: 'POST',
         body: formData,
@@ -555,19 +562,15 @@ function submitFormToServer(formData) {
     })
     .then(data => {
         hideLoadingIndicator();
-        
         // Log successful submission
         console.log('Form submitted successfully:', data);
-        
         // Show success message with the response from server if available
         const successMessage = data.message || 'Form submitted successfully! A confirmation has been sent to your email.';
         showSuccessMessage(successMessage);
-        
         // Save submission ID if provided by server
         if (data.submissionId) {
             localStorage.setItem('lastSubmissionId', data.submissionId);
         }
-        
         // Optional: Reset form after successful submission
         const shouldReset = confirm('Form submitted successfully! Would you like to reset the form to enter a new profile?');
         if (shouldReset) {
@@ -577,15 +580,12 @@ function submitFormToServer(formData) {
     .catch(error => {
         hideLoadingIndicator();
         console.error('Error submitting form:', error);
-        
         // Show appropriate error message
         let errorMessage = 'There was an error submitting the form. Please try again later.';
-        
         // Check for network errors
         if (!navigator.onLine) {
             errorMessage = 'You appear to be offline. Please check your internet connection and try again.';
         }
-        
         showErrorMessage(errorMessage);
     });
 }

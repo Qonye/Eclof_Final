@@ -3,8 +3,14 @@
 // without modifying existing functionality
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Define the base API URL
-    const BASE_API_URL = 'https://eclofprofileengine.up.railway.app'; // Your deployed backend URL
+    // Define the base API URL dynamically
+    let BASE_API_URL;
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        BASE_API_URL = 'http://localhost:3000';
+    } else {
+        BASE_API_URL = 'https://eclofprofileengine.up.railway.app';
+    }
 
     // Wait for the main admin script to finish initializing
     setTimeout(initializeProfileGenerator, 1000);
@@ -17,12 +23,14 @@ document.addEventListener('DOMContentLoaded', function() {
             generateProfileButton.id = 'generateProfile';
             generateProfileButton.className = 'admin-button';
             generateProfileButton.textContent = 'Generate Professional Profile';
+            generateProfileButton.type = 'button'; // Prevent form submission
             
             // Insert the button before the first child of modal actions
             modalActions.insertBefore(generateProfileButton, modalActions.firstChild);
             
             // Add event listener to the button
-            generateProfileButton.addEventListener('click', function() {
+            generateProfileButton.addEventListener('click', function(e) {
+                e.preventDefault(); // Prevent default form action
                 // Get submission ID directly from the modal if available
                 const modalElement = document.getElementById('submissionModal');
                 if (modalElement && modalElement.dataset.submissionId) {
@@ -95,6 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Handle Generate Profile button click
         function handleGenerateProfile() {
+            window.profileGenerationInProgress = true; // Prevent modal close during generation
             const submissionId = window.currentSubmissionId;
             
             if (!submissionId) {
@@ -145,6 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Reset the button state
                 generateProfileButton.textContent = originalText;
                 generateProfileButton.disabled = false;
+                window.profileGenerationInProgress = false; // Allow modal close again
             });
         }
         
@@ -153,7 +163,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Ensure profile section exists
             const profileSection = ensureProfileSectionExists();
             profileSection.style.display = 'block';
-            
+            // Force modal to stay open after profile generation
+            const submissionModal = document.getElementById('submissionModal');
+            if (submissionModal) {
+                submissionModal.style.display = 'block';
+            }
             // Update profile content
             document.getElementById('profileTitle').textContent = profileData.title || 'Generated Profile';
             document.getElementById('profileText').innerHTML = profileData.profile || '';
@@ -561,7 +575,11 @@ function displayGeneratedProfile(profileData) {
     // Implementation of displayGeneratedProfile from within the DOMContentLoaded
     // This is a fallback for when the function is called from outside the scope
     if (!profileData) return;
-    
+    // Force modal to stay open after profile generation
+    const submissionModal = document.getElementById('submissionModal');
+    if (submissionModal) {
+        submissionModal.style.display = 'block';
+    }
     // Check if profile section exists, if not wait for it to be created
     const checkProfileSection = () => {
         const profileSection = document.getElementById('generatedProfileSection');
