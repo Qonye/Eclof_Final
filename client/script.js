@@ -531,7 +531,7 @@ window.resetSignatures = function() {
 function submitFormToServer(formData) {
     // Set the server endpoint URL
     // IMPORTANT: Replace 'YOUR_DEPLOYED_RAILWAY_BACKEND_URL' with the actual URL of your Railway backend service
-    const apiUrl = 'eclofprofileengine.up.railway.app/api/submit'; 
+    const apiUrl='https;//eclofprofileengine.up.railway.app/api/submit'; 
     
     fetch(apiUrl, {
         method: 'POST',
