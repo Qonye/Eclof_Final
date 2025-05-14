@@ -62,7 +62,32 @@ try {
 }
 
 // Enable CORS for client requests
-app.use(cors());
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'https://eclofprofileengine.netlify.app'
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    // Also allow if the origin is in our list
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.error('CORS Error: Origin not allowed:', origin); // Log denied origins
+      callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true // Crucial for cookies/auth headers if your frontend sends them
+};
+app.use(cors(corsOptions));
+
+// Explicitly handle preflight requests for all routes
+// This should come before any other route definitions that might intercept OPTIONS requests
+app.options('*', cors(corsOptions));
 
 // Serve static files from the current directory
 app.use(express.static(__dirname));
