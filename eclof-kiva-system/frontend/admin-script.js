@@ -101,22 +101,24 @@ document.addEventListener('DOMContentLoaded', function() {
             adminDashboard.style.display = 'block';
             loadSubmissions();
         }
-    }
-
-    // Load submissions from the server
+    }    // Load submissions from the server
     function loadSubmissions() {
-        fetch('/api/admin/submissions')
+        fetch('/api/submissions')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to fetch submissions');
                 }
                 return response.json();
             })
-            .then(data => {
-                currentSubmissions = data;
-                filteredSubmissions = [...currentSubmissions];
-                updatePagination();
-                displaySubmissions();
+            .then(response => {
+                if (response.success) {
+                    currentSubmissions = response.data;
+                    filteredSubmissions = [...currentSubmissions];
+                    updatePagination();
+                    displaySubmissions();
+                } else {
+                    throw new Error(response.message || 'Failed to load submissions');
+                }
             })
             .catch(error => {
                 console.error('Error loading submissions:', error);
@@ -143,19 +145,18 @@ document.addEventListener('DOMContentLoaded', function() {
             submissionsTableBody.appendChild(emptyRow);
             return;
         }
-        
-        // Add submissions to the table
+          // Add submissions to the table
         pageSubmissions.forEach(submission => {
             const row = document.createElement('tr');
             
-            const date = new Date(submission.timestamp).toLocaleDateString();
-            const name = submission.data.name || 'N/A';
-            const branch = submission.data.branch || 'N/A';
-            const loanAmount = submission.data.loanAmount || 'N/A';
-            const clientId = submission.data.clientId || 'N/A';
+            const date = new Date(submission.submissionDate).toLocaleDateString();
+            const name = submission.name || 'N/A';
+            const branch = submission.branch || 'N/A';
+            const loanAmount = submission.loanAmount || 'N/A';
+            const clientId = submission.clientId || 'N/A';
             
             row.innerHTML = `
-                <td data-label="Submission ID">${submission.id}</td>
+                <td data-label="Submission ID">${submission._id}</td>
                 <td data-label="Date">${date}</td>
                 <td data-label="Borrower Name">${name}</td>
                 <td data-label="Branch">${branch}</td>
@@ -163,8 +164,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td data-label="Client ID">${clientId}</td>
                 <td data-label="Actions">
                     <div class="action-buttons">
-                        <button class="action-button view-button" data-id="${submission.id}">View</button>
-                        <button class="action-button delete-button" data-id="${submission.id}">Delete</button>
+                        <button class="action-button view-button" data-id="${submission._id}">View</button>
+                        <button class="action-button delete-button" data-id="${submission._id}">Delete</button>
                     </div>
                 </td>
             `;
@@ -206,18 +207,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (searchTerm === '') {
             // Reset to original list if search is empty
             filteredSubmissions = [...currentSubmissions];
-        } else {
-            filteredSubmissions = currentSubmissions.filter(submission => {
-                const data = submission.data;
-                
-                // Search in common fields
-                return (
-                    (data.name && data.name.toLowerCase().includes(searchTerm)) ||
-                    (data.branch && data.branch.toLowerCase().includes(searchTerm)) ||
-                    (data.clientId && data.clientId.toLowerCase().includes(searchTerm)) ||
-                    (submission.id && submission.id.toLowerCase().includes(searchTerm))
-                );
-            });
+        } else {        filteredSubmissions = currentSubmissions.filter(submission => {
+            // Search in common fields
+            return (
+                (submission.name && submission.name.toLowerCase().includes(searchTerm)) ||
+                (submission.branch && submission.branch.toLowerCase().includes(searchTerm)) ||
+                (submission.clientId && submission.clientId.toLowerCase().includes(searchTerm)) ||
+                (submission._id && submission._id.toLowerCase().includes(searchTerm))
+            );
+        });
         }
         
         // Reset to first page and update display
@@ -240,9 +238,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (endDate) {
             endDate.setHours(23, 59, 59, 999);
         }
-        
-        filteredSubmissions = currentSubmissions.filter(submission => {
-            const submissionDate = new Date(submission.timestamp);
+          filteredSubmissions = currentSubmissions.filter(submission => {
+            const submissionDate = new Date(submission.submissionDate);
             
             if (startDate && endDate) {
                 return submissionDate >= startDate && submissionDate <= endDate;
@@ -303,47 +300,48 @@ document.addEventListener('DOMContentLoaded', function() {
             updatePagination();
             displaySubmissions();
         }
-    }
-
-    // View submission details
+    }    // View submission details
     function viewSubmissionDetails(submissionId) {
-        fetch(`/api/admin/submissions/${submissionId}`)
+        fetch(`/api/submissions/${submissionId}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to fetch submission details');
                 }
                 return response.json();
             })
-            .then(submission => {
-                // Store the current submission ID both locally and globally
-                currentSubmissionId = submissionId;
-                window.currentSubmissionId = submissionId;
-                
-                // Store the submission data globally for the profile generator
-                window.currentSubmissionData = submission;
-                
-                // Add the submission ID as a data attribute to the modal for easier access
-                submissionModal.dataset.submissionId = submissionId;
-                
-                // Fill the modal with submission details
-                renderSubmissionDetails(submission);
-                
-                // Display the modal
-                submissionModal.style.display = 'block';
-                
-                // Add load event listeners to all images
-                setTimeout(addImageLoadEventListeners, 100);
+            .then(response => {
+                if (response.success) {
+                    const submission = response.data;
+                    
+                    // Store the current submission ID both locally and globally
+                    currentSubmissionId = submissionId;
+                    window.currentSubmissionId = submissionId;
+                    
+                    // Store the submission data globally for the profile generator
+                    window.currentSubmissionData = submission;
+                    
+                    // Add the submission ID as a data attribute to the modal for easier access
+                    submissionModal.dataset.submissionId = submissionId;
+                    
+                    // Fill the modal with submission details
+                    renderSubmissionDetails(submission);
+                    
+                    // Display the modal
+                    submissionModal.style.display = 'block';
+                    
+                    // Add load event listeners to all images
+                    setTimeout(addImageLoadEventListeners, 100);
+                } else {
+                    throw new Error(response.message || 'Failed to load submission details');
+                }
             })
             .catch(error => {
                 console.error('Error loading submission details:', error);
                 alert('Failed to load submission details. Please try again later.');
             });
-    }
-
-    // Render submission details in the modal
+    }    // Render submission details in the modal
     function renderSubmissionDetails(submission) {
-        const data = submission.data;
-        const date = new Date(submission.timestamp).toLocaleString();
+        const date = new Date(submission.submissionDate).toLocaleString();
         
         // Build the HTML for submission details
         let detailsHTML = `
@@ -351,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h3>Basic Information</h3>
                 <div class="detail-item">
                     <div class="detail-label">Submission ID:</div>
-                    <div>${submission.id}</div>
+                    <div>${submission._id}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Date Submitted:</div>
@@ -359,23 +357,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Name:</div>
-                    <div>${data.name || 'N/A'}</div>
+                    <div>${submission.name || 'N/A'}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Branch:</div>
-                    <div>${data.branch || 'N/A'}</div>
+                    <div>${submission.branch || 'N/A'}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Client ID:</div>
-                    <div>${data.clientId || 'N/A'}</div>
+                    <div>${submission.clientId || 'N/A'}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Loan Amount:</div>
-                    <div>${data.loanAmount || 'N/A'}</div>
+                    <div>${submission.loanAmount || 'N/A'}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Group Name:</div>
-                    <div>${data.groupName || 'N/A'}</div>
+                    <div>${submission.groupName || 'N/A'}</div>
                 </div>
             </div>
             
@@ -383,35 +381,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h3>Borrower Details</h3>
                 <div class="detail-item">
                     <div class="detail-label">Background:</div>
-                    <div>${data.background || 'N/A'}</div>
+                    <div>${submission.background || 'N/A'}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Business:</div>
-                    <div>${data.business || 'N/A'}</div>
+                    <div>${submission.business || 'N/A'}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Loan Purpose:</div>
-                    <div>${data.loanPurpose || 'N/A'}</div>
+                    <div>${submission.loanPurpose || 'N/A'}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Challenges & Plans:</div>
-                    <div>${data.challenges || 'N/A'}</div>
+                    <div>${submission.challenges || 'N/A'}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Community Contribution:</div>
-                    <div>${data.community || 'N/A'}</div>
+                    <div>${submission.community || 'N/A'}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Previous Loans:</div>
-                    <div>${data.previousLoans || 'N/A'}</div>
+                    <div>${submission.previousLoans || 'N/A'}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Future Plans:</div>
-                    <div>${data.futurePlans || 'N/A'}</div>
+                    <div>${submission.futurePlans || 'N/A'}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Additional Comments:</div>
-                    <div>${data.additionalComments || 'N/A'}</div>
+                    <div>${submission.additionalComments || 'N/A'}</div>
                 </div>
             </div>
             
@@ -419,21 +417,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h3>Client Waiver Information</h3>
                 <div class="detail-item">
                     <div class="detail-label">Client Name:</div>
-                    <div>${data.clientName || 'N/A'}</div>
+                    <div>${submission.clientName || 'N/A'}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Signature Date:</div>
-                    <div>${data.signatureDate || 'N/A'}</div>
+                    <div>${submission.signatureDate || 'N/A'}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Address:</div>
-                    <div>${data.address || 'N/A'}</div>
+                    <div>${submission.address || 'N/A'}</div>
                 </div>
             </div>
         `;
-        
-        // Add images if available
-        const hasImages = submission.profileImagePath || data.clientSignatureImagePath || data.repSignatureImagePath;
+          // Add images if available
+        const hasImages = submission.profileImageUrl || submission.clientSignatureUrl || submission.repSignatureUrl;
         
         if (hasImages) {
             detailsHTML += `
@@ -442,19 +439,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="borrower-images">
             `;
             
-            if (submission.profileImagePath) {
-                // Fix path handling - if it contains absolute path
-                let profileImagePath = submission.profileImagePath;
-                if (profileImagePath.includes('C:') || profileImagePath.includes('\\')) {
-                    // Extract just the filename
-                    const pathParts = profileImagePath.split(/[\\\/]/).filter(Boolean);
-                    const filename = pathParts[pathParts.length - 1];
-                    profileImagePath = `uploads/${filename}`;
-                }
-                
+            if (submission.profileImageUrl) {
                 detailsHTML += `
                     <div class="image-container">
-                        <img src="${profileImagePath}" alt="Profile Image" id="profileImage">
+                        <img src="${submission.profileImageUrl}" alt="Profile Image" id="profileImage">
                         <div class="image-label">Profile Photo</div>
                         <div class="image-actions">
                             <button class="image-action-btn download-image" data-image-type="profile">Download</button>
@@ -471,37 +459,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             }
             
-            if (data.clientSignatureImagePath) {
-                // Fix path handling for client signature
-                const signatureImagePath = data.clientSignatureImagePath.startsWith('/') 
-                    ? data.clientSignatureImagePath.substring(1) 
-                    : data.clientSignatureImagePath;
-                    
-                const signatureImageUrl = signatureImagePath.startsWith('http') 
-                    ? signatureImagePath 
-                    : `${window.location.origin}/${signatureImagePath}`;
-                    
+            if (submission.clientSignatureUrl) {
                 detailsHTML += `
                     <div class="image-container">
-                        <img src="${signatureImageUrl}" alt="Client Signature" id="clientSignatureImage">
+                        <img src="${submission.clientSignatureUrl}" alt="Client Signature" id="clientSignatureImage">
                         <div class="image-label">Client Signature</div>
                     </div>
                 `;
             }
             
-            if (data.repSignatureImagePath) {
-                // Fix path handling for rep signature
-                const repSignatureImagePath = data.repSignatureImagePath.startsWith('/') 
-                    ? data.repSignatureImagePath.substring(1) 
-                    : data.repSignatureImagePath;
-                    
-                const repSignatureImageUrl = repSignatureImagePath.startsWith('http') 
-                    ? repSignatureImagePath 
-                    : `${window.location.origin}/${repSignatureImagePath}`;
-                    
+            if (submission.repSignatureUrl) {
                 detailsHTML += `
                     <div class="image-container">
-                        <img src="${repSignatureImageUrl}" alt="Representative Signature" id="repSignatureImage">
+                        <img src="${submission.repSignatureUrl}" alt="Representative Signature" id="repSignatureImage">
                         <div class="image-label">Representative Signature</div>
                     </div>
                 `;
@@ -814,11 +784,9 @@ document.addEventListener('DOMContentLoaded', function() {
             deleteSubmission(currentSubmissionId);
             closeSubmissionModal();
         }
-    }
-
-    // Delete a submission
+    }    // Delete a submission
     function deleteSubmission(submissionId) {
-        fetch(`/api/admin/submissions/${submissionId}`, {
+        fetch(`/api/submissions/${submissionId}`, {
             method: 'DELETE'
         })
         .then(response => {
@@ -827,16 +795,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             return response.json();
         })
-        .then(data => {
-            // Remove submission from arrays
-            currentSubmissions = currentSubmissions.filter(s => s.id !== submissionId);
-            filteredSubmissions = filteredSubmissions.filter(s => s.id !== submissionId);
-            
-            // Update the UI
-            updatePagination();
-            displaySubmissions();
-            
-            alert('Submission deleted successfully.');
+        .then(response => {
+            if (response.success) {
+                // Remove submission from arrays
+                currentSubmissions = currentSubmissions.filter(s => s._id !== submissionId);
+                filteredSubmissions = filteredSubmissions.filter(s => s._id !== submissionId);
+                
+                // Update the UI
+                updatePagination();
+                displaySubmissions();
+                
+                alert('Submission deleted successfully.');
+            } else {
+                throw new Error(response.message || 'Failed to delete submission');
+            }
         })
         .catch(error => {
             console.error('Error deleting submission:', error);

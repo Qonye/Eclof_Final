@@ -13,19 +13,22 @@ const USE_MOCK_RESPONSES = process.env.USE_MOCK_RESPONSES === 'true' || false;
 // Function to generate a professional profile based on borrower data
 async function generateProfile(borrowerData) {
   try {
-    // Extract relevant data from the borrower information
+    // Extract relevant data from the borrower information (MongoDB structure)
     const {
-      name,
-      branch,
+      fullName,
+      age,
+      gender,
+      maritalStatus,
+      numberOfChildren,
+      location,
+      businessName,
+      businessType,
+      businessDescription,
+      businessExperience,
+      monthlyIncome,
       loanAmount,
-      background,
-      business,
       loanPurpose,
-      challenges,
-      community,
-      previousLoans,
-      futurePlans,
-      additionalComments
+      expectedImpact
     } = borrowerData;
 
     // Check if mock responses are enabled (for testing when API is unavailable)
@@ -35,20 +38,24 @@ async function generateProfile(borrowerData) {
     }
 
     // Create a prompt based on the NLP.md guidelines
-    const prompt = `
+        const prompt = `
 Please create a professional borrower profile for Kiva based on the following information:
 
 BORROWER INFORMATION:
-Name: ${name}
-Loan Amount: ${loanAmount || 'Not specified'}
-Background: ${background || 'N/A'}
-Business Description: ${business || 'N/A'}
-Loan Purpose: ${loanPurpose || 'N/A'}
-Challenges & Plans: ${challenges || 'N/A'}
-Community Contribution: ${community || 'N/A'}
-Previous Loans: ${previousLoans || 'N/A'}
-Future Plans: ${futurePlans || 'N/A'}
-Additional Comments: ${additionalComments || 'N/A'}
+Name: ${fullName}
+Age: ${age} years old
+Gender: ${gender}
+Marital Status: ${maritalStatus}
+Number of Children: ${numberOfChildren || 0}
+Location: ${location}
+Business Name: ${businessName}
+Business Type: ${businessType}
+Business Description: ${businessDescription}
+Business Experience: ${businessExperience} years
+Monthly Income: ${monthlyIncome ? `${monthlyIncome.toLocaleString()} KES` : 'Not specified'}
+Loan Amount: ${loanAmount ? `${loanAmount.toLocaleString()} KES` : 'Not specified'}
+Loan Purpose: ${loanPurpose}
+Expected Impact: ${expectedImpact}
 
 GUIDELINES:
 1. Concisely summarize the borrower in a single paragraph consisting of 10 or 11 sentences. Emphasize the borrower's name in **bold**.
@@ -58,6 +65,7 @@ GUIDELINES:
 5. Replace all mentions of "ECLOF" with "ECLOF-Kenya Limited, Kiva's field partner".
 6. Create a catchy title that describes the loan usage with specific examples.
 7. Avoid mentioning group/branch names, and generalize business references.
+8. Use appropriate pronouns based on the gender provided.
 
 OUTPUT FORMAT:
 {

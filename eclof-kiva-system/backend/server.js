@@ -1,330 +1,122 @@
 const express = require('express');
 const cors = require('cors');
-const multer = require('multer');
+const helmet = require('helmet');
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
 const fs = require('fs');
 const path = require('path');
-// Import the profile generator
-const { generateProfile } = require('./profile-generator');
+const connectDB = require('./config/database');
+require('dotenv').config();
+
+// Import routes
+const submissionRoutes = require('./routes/submissions');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Define base directories using environment variables or defaults
-const UPLOADS_DIR = process.env.UPLOADS_PATH || path.join(__dirname, 'uploads');
-const SUBMISSIONS_DIR = process.env.SUBMISSIONS_PATH || path.join(__dirname, 'submissions');
+// Connect to MongoDB
+connectDB();
 
-// Ensure directories exist
-try {
-  if (!fs.existsSync(UPLOADS_DIR)) {
-    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-    console.log(`Uploads directory created at: ${UPLOADS_DIR}`);
-  } else {
-    console.log(`Uploads directory already exists at: ${UPLOADS_DIR}`);
-  }
-  if (!fs.existsSync(SUBMISSIONS_DIR)) {
-    fs.mkdirSync(SUBMISSIONS_DIR, { recursive: true });
-    console.log(`Submissions directory created at: ${SUBMISSIONS_DIR}`);
-  } else {
-    console.log(`Submissions directory already exists at: ${SUBMISSIONS_DIR}`);
-  }
-} catch (error) {
-  console.error('Error creating initial directories:', error);
-  // If directories can't be created, the app might not function correctly.
-  // Depending on the severity, you might want to exit the process:
-  // process.exit(1); 
-}
+// Security middleware
+app.use(helmet());
+app.use(compression());
 
-// Enable CORS for client requests
-app.use(cors());
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.'
+});
+app.use(limiter);
 
-// Serve static files from the current directory
-app.use(express.static(__dirname));
+// CORS configuration
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://eclof-kiva-frontend.netlify.app',
+    /\.netlify\.app$/,
+    /\.railway\.app$/
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
 
-// Serve uploads and submissions directories as static paths
-app.use('/uploads', express.static(UPLOADS_DIR));
-app.use('/submissions', express.static(SUBMISSIONS_DIR));
+app.use(cors(corsOptions));
 
-// Configure storage for uploaded files
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    // Create uploads directory if it doesn't exist (already handled above, but good for safety)
-    if (!fs.existsSync(UPLOADS_DIR)) {
-      fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-    }
-    cb(null, UPLOADS_DIR);
-  },
-  filename: function (req, file, cb) {
-    // Generate unique filename
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const extension = path.extname(file.originalname);
-    cb(null, file.fieldname + '-' + uniqueSuffix + extension);
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Create necessary directories
+const dataDir = path.join(__dirname, 'data');
+const uploadsDir = path.join(__dirname, 'uploads');
+const submissionsDir = path.join(__dirname, 'data', 'submissions');
+
+[dataDir, uploadsDir, submissionsDir].forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+    console.log(`Directory created: ${dir}`);
   }
 });
 
-// Configure multer for handling multipart/form-data
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+// Serve static files for legacy support
+app.use('/uploads', express.static(uploadsDir));
+app.use('/data/submissions', express.static(submissionsDir));
+
+// API Routes
+app.use('/api/submissions', submissionRoutes);
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'ECLOF Kiva Backend API is running',
+    timestamp: new Date().toISOString(),
+    version: '2.0.0'
+  });
 });
 
-// Handle form submissions
-app.post('/api/submit', upload.single('profileImage'), (req, res) => {
-  try {
-    // Get form data
-    const formData = req.body;
-    console.log('Received submission data:', formData); // Log incoming data
-    
-    // Process base64 images from signatures
-    if (formData.clientSignatureImage) {
-      const base64Data = formData.clientSignatureImage.replace(/^data:image\/png;base64,/, '');
-      const signatureFilename = path.join(UPLOADS_DIR, `clientSignature-${Date.now()}.png`);
-      console.log('Attempting to write client signature to:', signatureFilename);
-      fs.writeFileSync(signatureFilename, base64Data, 'base64');
-      console.log('Client signature written successfully.');
-      formData.clientSignatureImagePath = signatureFilename;
-    }
-    
-    if (formData.repSignatureImage) {
-      const base64Data = formData.repSignatureImage.replace(/^data:image\/png;base64,/, '');
-      const repSignatureFilename = path.join(UPLOADS_DIR, `repSignature-${Date.now()}.png`);
-      console.log('Attempting to write rep signature to:', repSignatureFilename);
-      fs.writeFileSync(repSignatureFilename, base64Data, 'base64');
-      console.log('Rep signature written successfully.');
-      formData.repSignatureImagePath = repSignatureFilename;
-    }
-    
-    // Add the profile image path to the form data if uploaded
-    if (req.file) {
-      formData.profileImagePath = req.file.path;
-      console.log('Profile image uploaded to:', req.file.path);
-    }
-    
-    // Generate a submission ID
-    const submissionId = `ECLOF-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    
-    // Save the submission data to a JSON file
-    const submissionData = {
-      id: submissionId,
-      timestamp: new Date().toISOString(),
-      data: formData,
-      profileImagePath: req.file ? req.file.path : null
-    };
-    
-    // Ensure submissions directory exists (already handled above, but good for safety)
-    if (!fs.existsSync(SUBMISSIONS_DIR)) {
-      console.log('Submissions directory check: creating as it does not exist (unexpected at this stage).');
-      fs.mkdirSync(SUBMISSIONS_DIR, { recursive: true });
-    }
-    
-    const submissionFilePath = path.join(SUBMISSIONS_DIR, `submission-${submissionId}.json`);
-    console.log('Attempting to write submission JSON to:', submissionFilePath);
-    fs.writeFileSync(submissionFilePath, JSON.stringify(submissionData, null, 2));
-    console.log('Submission JSON written successfully to:', submissionFilePath);
-    
-    // Return success response
-    res.status(200).json({
-      success: true,
-      message: 'Form submitted successfully!',
-      submissionId: submissionId
-    });
-  } catch (error) {
-    console.error('Error processing form submission:', error);
-    res.status(500).json({
+// Error handling middleware
+app.use((error, req, res, next) => {
+  console.error('Server Error:', error);
+  
+  if (error.name === 'ValidationError') {
+    return res.status(400).json({
       success: false,
-      message: 'An error occurred while processing your submission.',
+      message: 'Validation Error',
       error: error.message
     });
   }
-});
-
-// ADMIN API ENDPOINTS
-
-// Get all submissions for admin dashboard
-app.get('/api/admin/submissions', (req, res) => {
-  try {
-    console.log('Looking for submissions in:', SUBMISSIONS_DIR);
-
-    // Check if submissions directory exists
-    if (!fs.existsSync(SUBMISSIONS_DIR)) {
-      console.log('Submissions directory does not exist.');
-      return res.status(200).json([]);
-    }
-
-    // Read all submission files
-    const submissionFiles = fs.readdirSync(SUBMISSIONS_DIR)
-      .filter(file => file.endsWith('.json'));
-
-    console.log('Found submission files:', submissionFiles);
-
-    if (submissionFiles.length === 0) {
-      console.log('No submission files found.');
-      return res.status(200).json([]);
-    }
-
-    // Parse each submission file
-    const submissions = submissionFiles.map(file => {
-      const filePath = path.join(SUBMISSIONS_DIR, file);
-      const fileContent = fs.readFileSync(filePath, 'utf8');
-      return JSON.parse(fileContent);
-    });
-
-    // Sort by timestamp, newest first
-    submissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-    res.status(200).json(submissions);
-  } catch (error) {
-    console.error('Error retrieving submissions:', error);
-    res.status(500).json({
+  
+  if (error.name === 'MulterError') {
+    return res.status(400).json({
       success: false,
-      message: 'An error occurred while retrieving submissions.',
+      message: 'File Upload Error',
       error: error.message
     });
   }
+  
+  res.status(500).json({
+    success: false,
+    message: 'Internal Server Error',
+    error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+  });
 });
 
-// Get a specific submission by ID
-app.get('/api/admin/submissions/:id', (req, res) => {
-  try {
-    const submissionId = req.params.id;
-    
-    // Find the submission file
-    const submissionFiles = fs.readdirSync(SUBMISSIONS_DIR)
-      .filter(file => file.includes(submissionId) && file.endsWith('.json'));
-    
-    if (submissionFiles.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Submission not found.'
-      });
-    }
-    
-    // Read the submission file
-    const filePath = path.join(SUBMISSIONS_DIR, submissionFiles[0]);
-    const fileContent = fs.readFileSync(filePath, 'utf8');
-    const submission = JSON.parse(fileContent);
-    
-    res.status(200).json(submission);
-  } catch (error) {
-    console.error('Error retrieving submission:', error);
-    res.status(500).json({
-      success: false,
-      message: 'An error occurred while retrieving the submission.',
-      error: error.message
-    });
-  }
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found'
+  });
 });
 
-// Delete a submission
-app.delete('/api/admin/submissions/:id', (req, res) => {
-  try {
-    const submissionId = req.params.id;
-    
-    // Find the submission file
-    const submissionFiles = fs.readdirSync(SUBMISSIONS_DIR)
-      .filter(file => file.includes(submissionId) && file.endsWith('.json'));
-    
-    if (submissionFiles.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Submission not found.'
-      });
-    }
-    
-    // Read the submission file to get file paths before deleting
-    const filePath = path.join(SUBMISSIONS_DIR, submissionFiles[0]);
-    const fileContent = fs.readFileSync(filePath, 'utf8');
-    const submission = JSON.parse(fileContent);
-    
-    // Delete associated files
-    // - Profile image
-    if (submission.profileImagePath && fs.existsSync(submission.profileImagePath)) {
-      fs.unlinkSync(submission.profileImagePath);
-    }
-    
-    // - Client signature image
-    if (submission.data.clientSignatureImagePath && fs.existsSync(submission.data.clientSignatureImagePath)) {
-      fs.unlinkSync(submission.data.clientSignatureImagePath);
-    }
-    
-    // - Representative signature image
-    if (submission.data.repSignatureImagePath && fs.existsSync(submission.data.repSignatureImagePath)) {
-      fs.unlinkSync(submission.data.repSignatureImagePath);
-    }
-    
-    // Delete the submission JSON file
-    fs.unlinkSync(filePath);
-    
-    res.status(200).json({
-      success: true,
-      message: 'Submission deleted successfully.'
-    });
-  } catch (error) {
-    console.error('Error deleting submission:', error);
-    res.status(500).json({
-      success: false,
-      message: 'An error occurred while deleting the submission.',
-      error: error.message
-    });
-  }
-});
-
-// Profile Generation Endpoint
-app.post('/api/admin/generate-profile/:id', async (req, res) => {
-  try {
-    const submissionId = req.params.id;
-    
-    // Find the submission file
-    const submissionFiles = fs.readdirSync(SUBMISSIONS_DIR)
-      .filter(file => file.includes(submissionId) && file.endsWith('.json'));
-    
-    if (submissionFiles.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Submission not found.'
-      });
-    }
-    
-    // Read the submission file
-    const filePath = path.join(SUBMISSIONS_DIR, submissionFiles[0]);
-    const fileContent = fs.readFileSync(filePath, 'utf8');
-    const submission = JSON.parse(fileContent);
-    
-    // Generate profile using the submission data
-    const result = await generateProfile(submission.data);
-    
-    if (!result.success) {
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to generate profile',
-        error: result.error
-      });
-    }
-    
-    // If the generation was successful, update the submission with the generated profile
-    submission.generatedProfile = result.data;
-    submission.profileGeneratedAt = new Date().toISOString();
-    
-    // Save the updated submission
-    fs.writeFileSync(filePath, JSON.stringify(submission, null, 2));
-    
-    res.status(200).json({
-      success: true,
-      profile: result.data,
-      submission: submission // Include the full submission data
-    });
-  } catch (error) {
-    console.error('Error generating profile:', error);
-    res.status(500).json({
-      success: false,
-      message: 'An error occurred while generating the profile.',
-      error: error.message
-    });
-  }
-});
-
-// Start the server
+// Start server
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`Form submission endpoint: http://localhost:${PORT}/api/submit`);
-  console.log(`Admin dashboard available at: http://localhost:${PORT}/admin.html`);
+  console.log(`🚀 ECLOF Kiva Backend Server running on http://localhost:${PORT}`);
+  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`📝 API endpoint: http://localhost:${PORT}/api/submissions`);
 });

@@ -47,9 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             console.error('Could not find representative signature canvas');
         }
-    });
-    
-    // Form submission
+    });    // Form submission
     document.getElementById('borrowerProfileForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -57,22 +55,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Show loading indicator
             showLoadingIndicator();
             
-            // Capture signatures as base64 images and add to form data
-            const formData = new FormData(this);
-            
-            // Add client signature to form data
-            const clientSignatureCanvas = document.querySelector('#signatureBox canvas');
-            if (clientSignatureCanvas) {
-                const clientSignatureData = clientSignatureCanvas.toDataURL('image/png');
-                formData.append('clientSignatureImage', clientSignatureData);
-            }
-            
-            // Add representative signature to form data if present
-            const repSignatureCanvas = document.querySelector('#repSignatureBox canvas');
-            if (repSignatureCanvas) {
-                const repSignatureData = repSignatureCanvas.toDataURL('image/png');
-                formData.append('repSignatureImage', repSignatureData);
-            }
+            // Create FormData with proper field mapping
+            const formData = createFormDataWithSignatures(this);
             
             // Submit form data to the server
             submitFormToServer(formData);
@@ -526,11 +510,34 @@ window.resetSignatures = function() {
 };
 
 /**
+ * Create FormData with signatures included
+ */
+function createFormDataWithSignatures(form) {
+    const formData = new FormData(form);
+    
+    // Handle client signature
+    const clientSignatureCanvas = document.querySelector('#signatureBox canvas');
+    if (clientSignatureCanvas) {
+        const clientSignatureData = clientSignatureCanvas.toDataURL('image/png');
+        formData.append('clientSignature', clientSignatureData);
+    }
+    
+    // Handle representative signature
+    const repSignatureCanvas = document.querySelector('#repSignatureBox canvas');
+    if (repSignatureCanvas) {
+        const repSignatureData = repSignatureCanvas.toDataURL('image/png');
+        formData.append('representativeSignature', repSignatureData);
+    }
+    
+    return formData;
+}
+
+/**
  * Submit form data to the server
  */
 function submitFormToServer(formData) {
     // Set the server endpoint URL
-    const apiUrl = 'http://localhost:3000/api/submit';
+    const apiUrl = 'http://localhost:3000/api/submissions';
     
     fetch(apiUrl, {
         method: 'POST',
@@ -550,19 +557,23 @@ function submitFormToServer(formData) {
         // Log successful submission
         console.log('Form submitted successfully:', data);
         
-        // Show success message with the response from server if available
-        const successMessage = data.message || 'Form submitted successfully! A confirmation has been sent to your email.';
-        showSuccessMessage(successMessage);
-        
-        // Save submission ID if provided by server
-        if (data.submissionId) {
-            localStorage.setItem('lastSubmissionId', data.submissionId);
-        }
-        
-        // Optional: Reset form after successful submission
-        const shouldReset = confirm('Form submitted successfully! Would you like to reset the form to enter a new profile?');
-        if (shouldReset) {
-            resetForm();
+        if (data.success) {
+            // Show success message
+            const successMessage = data.message || 'Form submitted successfully!';
+            showSuccessMessage(successMessage);
+            
+            // Save submission ID if provided by server
+            if (data.data && data.data.submissionId) {
+                localStorage.setItem('lastSubmissionId', data.data.submissionId);
+            }
+            
+            // Optional: Reset form after successful submission
+            const shouldReset = confirm('Form submitted successfully! Would you like to reset the form to enter a new profile?');
+            if (shouldReset) {
+                resetForm();
+            }
+        } else {
+            showErrorMessage(data.message || 'There was an error submitting the form');
         }
     })
     .catch(error => {

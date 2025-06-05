@@ -112,9 +112,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const originalText = generateProfileButton.textContent;
             generateProfileButton.textContent = 'Generating...';
             generateProfileButton.disabled = true;
-            
-            // Make API request to generate profile
-            fetch(`/api/admin/generate-profile/${window.currentSubmissionId}`, {
+              // Make API request to generate profile
+            fetch(`/api/submissions/${window.currentSubmissionId}/generate-profile`, {
                 method: 'POST'
             })
             .then(response => {
@@ -123,16 +122,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 return response.json();
             })
-            .then(data => {
-                if (!data.success) {
-                    throw new Error(data.message || 'Failed to generate profile');
+            .then(response => {
+                if (!response.success) {
+                    throw new Error(response.message || 'Failed to generate profile');
                 }
                 
                 // Store the submission data globally
-                window.currentSubmissionData = data.submission;
+                window.currentSubmissionData = response.data.submission;
                 
                 // Display the generated profile
-                displayGeneratedProfile(data.profile);
+                displayGeneratedProfile(response.data.profile);
             })
             .catch(error => {
                 console.error('Error generating profile:', error);
