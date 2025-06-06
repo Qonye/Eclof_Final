@@ -1,11 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Admin credentials (hard-coded for demonstration)
-    // In a real application, this would be validated on the server side
-    const ADMIN_CREDENTIALS = {
-        username: 'admin',
-        password: 'eclof2025'
-    };
-
     // Elements
     const loginForm = document.getElementById('loginForm');
     const adminLoginForm = document.getElementById('adminLoginForm');
@@ -93,38 +86,52 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target === agentModal) {
             hideAgentModal();
         }
-    });
-
-    // Handle login
-    function handleLogin(e) {
+    });    // Handle login
+    async function handleLogin(e) {
         e.preventDefault();
         
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
+        const submitBtn = e.target.querySelector('button[type="submit"]');
         
-        if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-            // Set session
-            sessionStorage.setItem('adminLoggedIn', 'true');
+        // Clear previous errors
+        loginError.textContent = '';
+        
+        // Show loading state
+        const originalBtnText = submitBtn.textContent;
+        submitBtn.textContent = 'Logging in...';
+        submitBtn.disabled = true;
+        
+        try {
+            // Authenticate admin with API
+            const authResult = await AdminAuth.login(username, password);
             
-            // Hide login, show dashboard
-            loginForm.style.display = 'none';
-            adminDashboard.style.display = 'block';
-            
-            // Load submissions
-            loadSubmissions();
-        } else {
-            loginError.textContent = 'Invalid username or password. Please try again.';
-            
-            // Clear the error message after 3 seconds
-            setTimeout(() => {
-                loginError.textContent = '';
-            }, 3000);
+            if (authResult.success) {
+                // Hide login, show dashboard
+                loginForm.style.display = 'none';
+                adminDashboard.style.display = 'block';
+                
+                // Load submissions
+                loadSubmissions();
+            } else {
+                loginError.textContent = authResult.message || 'Invalid username or password. Please try again.';
+                
+                // Clear the error message after 3 seconds
+                setTimeout(() => {
+                    loginError.textContent = '';
+                }, 3000);
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            loginError.textContent = 'Login failed. Please try again.';
+        } finally {
+            // Restore button state
+            submitBtn.textContent = originalBtnText;
+            submitBtn.disabled = false;
         }
-    }
-
-    // Handle logout
+    }    // Handle logout
     function handleLogout() {
-        sessionStorage.removeItem('adminLoggedIn');
+        AdminAuth.logout();
         adminDashboard.style.display = 'none';
         loginForm.style.display = 'block';
         document.getElementById('username').value = '';
@@ -133,14 +140,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Check if user is logged in
     function checkLoginStatus() {
-        const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
+        const isLoggedIn = AdminAuth.isLoggedIn();
         
         if (isLoggedIn) {
             loginForm.style.display = 'none';
             adminDashboard.style.display = 'block';
             loadSubmissions();
         }
-    }    // Load submissions from the server
+    }// Load submissions from the server
     function loadSubmissions() {
         fetch(window.AppConfig.getSubmissionsUrl())
             .then(response => {
@@ -948,13 +955,12 @@ document.addEventListener('DOMContentLoaded', function() {
             loadAgents();
         }
     }
-    
-    // Agent Management Functions
-    function loadAgents() {
+      // Agent Management Functions
+    async function loadAgents() {
         try {
-            // Get agents from localStorage or default agents
-            const agents = getStoredAgents();
-            displayAgents(agents);
+            // Get agents from API instead of localStorage
+            const users = await UserManagementAPI.getAllUsers();
+            displayAgents(users);
         } catch (error) {
             console.error('Error loading agents:', error);
             alert('Failed to load agents. Please try again.');
@@ -977,9 +983,7 @@ document.addEventListener('DOMContentLoaded', function() {
             toggleIcon.textContent = '👁️';
             passwordHelp.style.display = 'none';
         }
-    }
-
-    // Get stored agents from localStorage
+    }    // Get stored agents from localStorage (legacy - keeping for fallback)
     function getStoredAgents() {
         try {
             const stored = localStorage.getItem('eclof_agents');
@@ -990,55 +994,33 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error loading stored agents:', error);
         }
         
-        // Return default agents from agent-config.js if available
-        if (typeof window.getAgents === 'function') {
-            return window.getAgents();
-        }
-        
         return {};
-    }
-
-    // Save agents to localStorage
-    function saveStoredAgents(agents) {
-        try {
-            localStorage.setItem('eclof_agents', JSON.stringify(agents));
-        } catch (error) {
-            console.error('Error saving agents:', error);
-            alert('Failed to save agent data');
-        }
-    }
-
-    // Display agents in the table
-    function displayAgents(agents = null) {
-        if (!agents) {
-            agents = getStoredAgents();
-        }
-        
+    }// Display agents in the table
+    function displayAgents(users = []) {
         const tbody = document.getElementById('agentsTableBody');
         if (!tbody) return;
         
         tbody.innerHTML = '';
         
-        Object.keys(agents).forEach(agentId => {
-            const agent = agents[agentId];
+        users.forEach(user => {
             const row = document.createElement('tr');
             
             // Determine status
-            const status = agent.active !== false ? 'Active' : 'Inactive';
-            const statusClass = agent.active !== false ? 'status-active' : 'status-inactive';
+            const status = user.isActive ? 'Active' : 'Inactive';
+            const statusClass = user.isActive ? 'status-active' : 'status-inactive';
             
             row.innerHTML = `
-                <td data-label="Agent ID">${agentId}</td>
-                <td data-label="Name">${agent.name || 'N/A'}</td>
-                <td data-label="Branch">${agent.branch || 'N/A'}</td>
-                <td data-label="Role">${agent.role || 'N/A'}</td>
+                <td data-label="Agent ID">${user.agentId}</td>
+                <td data-label="Name">${user.name || 'N/A'}</td>
+                <td data-label="Branch">${user.branch || 'N/A'}</td>
+                <td data-label="Role">${user.role || 'N/A'}</td>
                 <td data-label="Status">
                     <span class="status-badge ${statusClass}">${status}</span>
                 </td>
                 <td data-label="Actions">
                     <div class="action-buttons">
-                        <button class="action-button edit-button" data-id="${agentId}">Edit</button>
-                        <button class="action-button delete-button" data-id="${agentId}">Delete</button>
+                        <button class="action-button edit-button" data-id="${user.agentId}">Edit</button>
+                        <button class="action-button delete-button" data-id="${user.agentId}">Delete</button>
                     </div>
                 </td>
             `;
@@ -1068,57 +1050,128 @@ document.addEventListener('DOMContentLoaded', function() {
                 deleteAgent(agentId);
             });
         });
+    }    // Edit agent function
+    async function editAgent(agentId) {
+        try {
+            const users = await UserManagementAPI.getAllUsers();
+            const user = users.find(u => u.agentId === agentId);
+            
+            if (!user) {
+                alert('Agent not found');
+                return;
+            }
+            
+            // Set editing mode
+            isEditingAgent = true;
+            editingAgentId = agentId;
+            
+            // Update modal title
+            document.getElementById('agentModalTitle').textContent = 'Edit Agent';
+            
+            // Populate form fields
+            document.getElementById('agentId').value = agentId;
+            document.getElementById('agentName').value = user.name || '';
+            document.getElementById('agentBranch').value = user.branch || '';
+            document.getElementById('agentRole').value = user.role || '';
+            document.getElementById('agentPassword').value = ''; // Don't show existing password
+            
+            // Make agent ID field readonly during edit
+            document.getElementById('agentId').readOnly = true;
+            
+            // Show password by default when editing
+            const passwordInput = document.getElementById('agentPassword');
+            const toggleBtn = document.getElementById('passwordToggle');
+            const toggleIcon = toggleBtn.querySelector('.toggle-icon');
+            const passwordHelp = document.getElementById('passwordHelp');
+            
+            passwordInput.type = 'text';
+            toggleIcon.textContent = '🙈';
+            passwordHelp.style.display = 'block';
+            
+            // Show modal
+            showAgentModal();
+        } catch (error) {
+            console.error('Error loading agent for edit:', error);
+            alert('Failed to load agent details. Please try again.');
+        }
+    }    // Delete agent function
+    async function deleteAgent(agentId) {
+        if (confirm(`Are you sure you want to delete agent ${agentId}?`)) {
+            try {
+                await UserManagementAPI.deleteUser(agentId);
+                alert(`Agent ${agentId} has been deleted.`);
+                // Reload agents list
+                loadAgents();
+            } catch (error) {
+                console.error('Error deleting agent:', error);
+                alert(`Failed to delete agent: ${error.message}`);
+            }
+        }
     }
 
-    // Edit agent function
-    function editAgent(agentId) {
-        const agents = getStoredAgents();
-        const agent = agents[agentId];
+    // Handle saving agent (add or edit)
+    async function handleSaveAgent(e) {
+        e.preventDefault();
         
-        if (!agent) {
-            alert('Agent not found');
+        const agentId = document.getElementById('agentId').value.trim().toUpperCase();
+        const agentName = document.getElementById('agentName').value.trim();
+        const agentBranch = document.getElementById('agentBranch').value.trim();
+        const agentRole = document.getElementById('agentRole').value;
+        const agentPassword = document.getElementById('agentPassword').value;
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        
+        // Basic validation
+        if (!agentId || !agentName || !agentBranch || !agentRole) {
+            alert('Please fill in all required fields.');
             return;
         }
         
-        // Set editing mode
-        isEditingAgent = true;
-        editingAgentId = agentId;
+        // Password validation (required for new agents, optional for edits)
+        if (!isEditingAgent && !agentPassword) {
+            alert('Password is required for new agents.');
+            return;
+        }
         
-        // Update modal title
-        document.getElementById('agentModalTitle').textContent = 'Edit Agent';
+        // Show loading state
+        const originalBtnText = submitBtn.textContent;
+        submitBtn.textContent = isEditingAgent ? 'Updating...' : 'Creating...';
+        submitBtn.disabled = true;
         
-        // Populate form fields
-        document.getElementById('agentId').value = agentId;
-        document.getElementById('agentName').value = agent.name || '';
-        document.getElementById('agentBranch').value = agent.branch || '';
-        document.getElementById('agentRole').value = agent.role || '';
-        document.getElementById('agentPassword').value = agent.password || '';
-        
-        // Make agent ID field readonly during edit
-        document.getElementById('agentId').readOnly = true;
-        
-        // Show password by default when editing
-        const passwordInput = document.getElementById('agentPassword');
-        const toggleBtn = document.getElementById('passwordToggle');
-        const toggleIcon = toggleBtn.querySelector('.toggle-icon');
-        const passwordHelp = document.getElementById('passwordHelp');
-        
-        passwordInput.type = 'text';
-        toggleIcon.textContent = '🙈';
-        passwordHelp.style.display = 'block';
-        
-        // Show modal
-        showAgentModal();
-    }
-
-    // Delete agent function
-    function deleteAgent(agentId) {
-        if (confirm(`Are you sure you want to delete agent ${agentId}?`)) {
-            const agents = getStoredAgents();
-            delete agents[agentId];
-            saveStoredAgents(agents);
-            displayAgents(agents);
-            alert(`Agent ${agentId} has been deleted.`);
+        try {
+            const userData = {
+                agentId: agentId,
+                name: agentName,
+                branch: agentBranch,
+                role: agentRole,
+                isActive: true
+            };
+            
+            // Only include password if provided
+            if (agentPassword) {
+                userData.password = agentPassword;
+            }
+            
+            if (isEditingAgent) {
+                // Update existing agent
+                await UserManagementAPI.updateUser(editingAgentId, userData);
+                alert(`Agent ${agentId} has been updated successfully.`);
+            } else {
+                // Create new agent
+                await UserManagementAPI.createUser(userData);
+                alert(`Agent ${agentId} has been created successfully.`);
+            }
+            
+            // Hide modal and reload agents list
+            hideAgentModal();
+            loadAgents();
+            
+        } catch (error) {
+            console.error('Error saving agent:', error);
+            alert(`Failed to ${isEditingAgent ? 'update' : 'create'} agent: ${error.message}`);
+        } finally {
+            // Restore button state
+            submitBtn.textContent = originalBtnText;
+            submitBtn.disabled = false;
         }
     }
 
@@ -1169,12 +1222,16 @@ document.addEventListener('DOMContentLoaded', function() {
         isEditingAgent = false;
         editingAgentId = null;
         document.getElementById('agentId').readOnly = false;
-    }
-
-    // Load agents when switching to agents tab
-    function loadAgents() {
-        const agents = getStoredAgents();
-        displayAgents(agents);
+    }    // Load agents when switching to agents tab (updated at bottom to match the earlier implementation)
+    async function loadAgentsLegacy() {
+        try {
+            // Get agents from API instead of localStorage
+            const users = await UserManagementAPI.getAllUsers();
+            displayAgents(users);
+        } catch (error) {
+            console.error('Error loading agents:', error);
+            alert('Failed to load agents. Please try again.');
+        }
     }
 
     // ...existing code...

@@ -10,6 +10,8 @@ require('dotenv').config();
 
 // Import routes
 const submissionRoutes = require('./routes/submissions');
+const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/users');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -72,6 +74,8 @@ app.use('/data/submissions', express.static(submissionsDir));
 
 // API Routes
 app.use('/api/submissions', submissionRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

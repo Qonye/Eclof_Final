@@ -814,30 +814,46 @@ function initializeAgentLogin() {
 /**
  * Handle agent login form submission
  */
-function handleAgentLogin(e) {
+async function handleAgentLogin(e) {
     e.preventDefault();
     
     const agentId = document.getElementById('agentId').value.trim().toUpperCase();
     const password = document.getElementById('agentPassword').value;
     const errorDiv = document.getElementById('agentLoginError');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
     
     // Clear previous errors
     errorDiv.style.display = 'none';
     errorDiv.textContent = '';
     
-    // Authenticate agent
-    const authResult = AgentAuth.login(agentId, password);
+    // Show loading state
+    const originalBtnText = submitBtn.textContent;
+    submitBtn.textContent = 'Logging in...';
+    submitBtn.disabled = true;
     
-    if (authResult.success) {
-        showMainForm();
-    } else {
-        errorDiv.textContent = authResult.message;
-        errorDiv.style.display = 'block';
+    try {
+        // Authenticate agent with API
+        const authResult = await AgentAuth.login(agentId, password);
         
-        // Clear error after 5 seconds
-        setTimeout(() => {
-            errorDiv.style.display = 'none';
-        }, 5000);
+        if (authResult.success) {
+            showMainForm();
+        } else {
+            errorDiv.textContent = authResult.message;
+            errorDiv.style.display = 'block';
+            
+            // Clear error after 5 seconds
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        errorDiv.textContent = 'Login failed. Please try again.';
+        errorDiv.style.display = 'block';
+    } finally {
+        // Restore button state
+        submitBtn.textContent = originalBtnText;
+        submitBtn.disabled = false;
     }
 }
 
