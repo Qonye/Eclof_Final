@@ -134,26 +134,34 @@ document.addEventListener('DOMContentLoaded', function() {
  * Enhance mobile responsiveness for signature pads
  */
 function initializeSignaturePad(elementId) {
-    const canvas = document.getElementById(elementId);
+    const container = document.getElementById(elementId);
     let isDrawing = false;
     let lastX = 0;
     let lastY = 0;
     let ctx = null;
+    let canvas = null;
     
     // Create a canvas element with proper dimensions
-    if (!canvas.getContext) {
-        const newCanvas = document.createElement('canvas');
+    if (!container.getContext) {
+        // Container is a DIV, create a canvas inside it
+        canvas = document.createElement('canvas');
         // Set canvas dimensions to match container
-        newCanvas.width = canvas.clientWidth;
-        newCanvas.height = canvas.clientHeight;
-        newCanvas.id = elementId + 'Canvas';
-        canvas.appendChild(newCanvas);
-        ctx = newCanvas.getContext('2d');
+        canvas.width = container.clientWidth || 300;
+        canvas.height = container.clientHeight || 150;
+        canvas.id = elementId + 'Canvas';
+        canvas.style.border = '1px solid #ccc';
+        canvas.style.display = 'block';
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        container.appendChild(canvas);
+        ctx = canvas.getContext('2d');
     } else {
+        // Container is already a canvas
+        canvas = container;
         ctx = canvas.getContext('2d');
         // Make sure canvas dimensions match container
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
+        canvas.width = canvas.clientWidth || 300;
+        canvas.height = canvas.clientHeight || 150;
     }
     
     // Set up drawing context
@@ -161,13 +169,13 @@ function initializeSignaturePad(elementId) {
     ctx.lineCap = 'round';
     ctx.strokeStyle = '#000000';
     
-    // Event listeners for mouse (desktop)
+    // Event listeners for mouse (desktop) - bind to the actual canvas
     canvas.addEventListener('mousedown', startDrawing);
     canvas.addEventListener('mousemove', draw);
     canvas.addEventListener('mouseup', stopDrawing);
     canvas.addEventListener('mouseout', stopDrawing);
     
-    // Event listeners for touch (mobile)
+    // Event listeners for touch (mobile) - bind to the actual canvas
     canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
     canvas.addEventListener('touchend', stopDrawing, { passive: true });
