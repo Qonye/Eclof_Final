@@ -149,13 +149,19 @@ document.addEventListener('DOMContentLoaded', function() {
         passwordToggle.addEventListener('click', togglePasswordVisibility);
     }    // Close modals when clicking outside (on the modal backdrop, not the content)
     window.addEventListener('click', function(event) {
+        console.log('Window click event triggered, target:', event.target, 'isUploadInProgress:', isUploadInProgress);
+        
         if (event.target === agentModal) {
+            console.log('Closing agent modal');
             hideAgentModal();
         }
         // Only close submission modal if clicking on the modal backdrop itself, not its content
         // and no upload is in progress
-        if (event.target === submissionModal) {
+        if (event.target === submissionModal && !isUploadInProgress) {
+            console.log('Closing submission modal via window click');
             closeSubmissionModal();
+        } else if (event.target === submissionModal && isUploadInProgress) {
+            console.log('Prevented submission modal close due to upload in progress');
         }
     });// Handle login
     async function handleLogin(e) {
@@ -707,10 +713,11 @@ document.addEventListener('DOMContentLoaded', function() {
         cancelButtons.forEach(button => {
             button.addEventListener('click', hideImageUpload);
         });
-    }
-
-    // Handle image download
+    }    // Handle image download
     function handleImageDownload(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
         const imageType = e.target.getAttribute('data-image-type');
         let imageElement;
         
@@ -803,10 +810,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log("Attempting direct download as fallback...");
                 window.open(imageSrc, '_blank');
             });
-    }
-
-    // Show image upload interface
+    }    // Show image upload interface
     function showImageUpload(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
         const imageType = e.target.getAttribute('data-image-type');
         const uploadContainer = document.getElementById(`${imageType}ImageUpload`);
         
@@ -818,6 +826,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Hide image upload interface
     function hideImageUpload(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
         const imageType = e.target.getAttribute('data-image-type');
         const uploadContainer = document.getElementById(`${imageType}ImageUpload`);
         const replaceButton = document.querySelector(`.replace-image[data-image-type="${imageType}"]`);
@@ -829,10 +840,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (replaceButton) {
             replaceButton.style.display = 'inline-block';
         }
-    }
-
-    // Handle image upload and replacement
+    }    // Handle image upload and replacement
     function handleImageUpload(e) {
+        e.preventDefault(); // Prevent default button behavior that might close modal
+        e.stopPropagation(); // Prevent event bubbling that might trigger modal close
+        
         const imageType = e.target.getAttribute('data-image-type');
         const fileInput = document.getElementById(`new${imageType.charAt(0).toUpperCase() + imageType.slice(1)}Image`);
         
@@ -847,7 +859,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!file.type.startsWith('image/')) {
             alert('Please select a valid image file.');
             return;
-        }        // Set upload state to prevent modal closing
+        }// Set upload state to prevent modal closing
         isUploadInProgress = true;
         
         // Add visual indicator to modal header
@@ -999,12 +1011,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }    // Close the submission details modal
     function closeSubmissionModal() {
+        console.log('closeSubmissionModal called, isUploadInProgress:', isUploadInProgress);
+        
         // Prevent closing if upload is in progress
         if (isUploadInProgress) {
+            console.log('Preventing modal close due to upload in progress');
             showToast('Please wait while image upload is in progress...', 'warning');
             return;
         }
         
+        console.log('Closing submission modal');
         submissionModal.style.display = 'none';
         // Don't clear the currentSubmissionId here anymore
         // This allows the profile generator to still access it after the modal is closed
