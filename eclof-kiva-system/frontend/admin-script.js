@@ -138,21 +138,34 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Update total count
         totalSubmissionsSpan.textContent = filteredSubmissions.length;
-        
-        if (pageSubmissions.length === 0) {
+          if (pageSubmissions.length === 0) {
             const emptyRow = document.createElement('tr');
             emptyRow.innerHTML = `<td colspan="7" style="text-align: center;">No submissions found</td>`;
             submissionsTableBody.appendChild(emptyRow);
             return;
         }
-          // Add submissions to the table
+
+        // Add submissions to the table
         pageSubmissions.forEach(submission => {
             const row = document.createElement('tr');
+              // Handle date formatting with proper validation
+            let date = 'N/A';
+            if (submission.createdAt || submission.submissionDate || submission.timestamp) {
+                // Try different possible date fields
+                const dateValue = submission.createdAt || submission.submissionDate || submission.timestamp;
+                const submissionDate = new Date(dateValue);
+                if (!isNaN(submissionDate.getTime())) {
+                    date = submissionDate.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    });
+                }
+            }
             
-            const date = new Date(submission.submissionDate).toLocaleDateString();
             const name = submission.name || 'N/A';
             const branch = submission.branch || 'N/A';
-            const loanAmount = submission.loanAmount || 'N/A';
+            const loanAmount = submission.loanAmount ? `KES ${Number(submission.loanAmount).toLocaleString()}` : 'N/A';
             const clientId = submission.clientId || 'N/A';
             
             row.innerHTML = `
@@ -237,9 +250,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set end date to end of day if provided
         if (endDate) {
             endDate.setHours(23, 59, 59, 999);
-        }
-          filteredSubmissions = currentSubmissions.filter(submission => {
-            const submissionDate = new Date(submission.submissionDate);
+        }        filteredSubmissions = currentSubmissions.filter(submission => {
+            // Try different possible date fields
+            const dateValue = submission.createdAt || submission.submissionDate || submission.timestamp;
+            const submissionDate = new Date(dateValue);
             
             if (startDate && endDate) {
                 return submissionDate >= startDate && submissionDate <= endDate;
@@ -340,8 +354,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Failed to load submission details. Please try again later.');
             });
     }    // Render submission details in the modal
-    function renderSubmissionDetails(submission) {
-        const date = new Date(submission.submissionDate).toLocaleString();
+    function renderSubmissionDetails(submission) {        // Handle date formatting with proper validation
+        let date = 'N/A';
+        if (submission.createdAt || submission.submissionDate || submission.timestamp) {
+            // Try different possible date fields
+            const dateValue = submission.createdAt || submission.submissionDate || submission.timestamp;
+            const submissionDate = new Date(dateValue);
+            if (!isNaN(submissionDate.getTime())) {
+                date = submissionDate.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+        }
         
         // Build the HTML for submission details
         let detailsHTML = `
