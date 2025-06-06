@@ -334,10 +334,8 @@ const UserManagementAPI = {
 
             if (!response.ok) {
                 throw new Error(`Failed to fetch users: ${response.status} ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            return data.users || [];
+            }            const data = await response.json();
+            return data.data || [];
         } catch (error) {
             console.error('Error fetching users:', error);
             throw error;
