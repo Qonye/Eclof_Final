@@ -318,14 +318,14 @@ const AdminAuth = {
 };
 
 // User Management API
-const UserManagementAPI = {
-    // Get all users
-    async getAllUsers() {
+const UserManagementAPI = {    // Get all users
+    async getAllUsers(showAll = false) {
         const token = localStorage.getItem('adminAuthToken');
         if (!token) throw new Error('Not authenticated');
 
         try {
-            const response = await fetch(`${API_BASE_URL}/users`, {
+            const url = showAll ? `${API_BASE_URL}/users?showAll=true` : `${API_BASE_URL}/users`;
+            const response = await fetch(url, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -340,7 +340,7 @@ const UserManagementAPI = {
             console.error('Error fetching users:', error);
             throw error;
         }
-    },    // Create new user
+    },// Create new user
     async createUser(userData) {
         const token = localStorage.getItem('adminAuthToken');
         if (!token) throw new Error('Not authenticated');

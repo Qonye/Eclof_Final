@@ -1,21 +1,29 @@
 const User = require('../models/User');
 
-const userController = {
-    
-    // Get all users (admin only)
+const userController = {    // Get all users (admin only)
     getAllUsers: async (req, res) => {
         try {
-            const { role, branch, active } = req.query;
+            const { role, branch, active, showAll } = req.query;
             
             // Build filter
             const filter = {};
             if (role) filter.role = role;
             if (branch) filter.branch = branch;
-            if (active !== undefined) filter.isActive = active === 'true';
+            
+            // If showAll is true, show both active and inactive users
+            // If active parameter is specified, use it
+            // Otherwise, default to active users only
+            if (showAll === 'true') {
+                // Don't filter by isActive - show all users
+            } else if (active !== undefined) {
+                filter.isActive = active === 'true';
+            } else {
+                filter.isActive = true; // Default to active users only
+            }
             
             const users = await User.find(filter)
                 .select('-password')
-                .sort({ role: 1, name: 1 });
+                .sort({ isActive: -1, role: 1, name: 1 }); // Sort by active status first, then role, then name
             
             res.json({
                 success: true,
@@ -31,11 +39,23 @@ const userController = {
             });
         }
     },
-    
-    // Get user by ID
+      // Get user by ID
     getUserById: async (req, res) => {
         try {
-            const user = await User.findById(req.params.id).select('-password');
+            const userIdentifier = req.params.id;
+            
+            // Try to find user by MongoDB _id first, then by agentId
+            let user = null;
+            
+            // Check if it's a valid MongoDB ObjectId
+            if (userIdentifier.match(/^[0-9a-fA-F]{24}$/)) {
+                user = await User.findById(userIdentifier).select('-password');
+            }
+            
+            // If not found by _id, try by agentId
+            if (!user) {
+                user = await User.findOne({ agentId: userIdentifier.toUpperCase() }).select('-password');
+            }
             
             if (!user) {
                 return res.status(404).json({
@@ -140,14 +160,25 @@ const userController = {
             });
         }
     },
-    
-    // Update user (admin only)
+      // Update user (admin only)
     updateUser: async (req, res) => {
         try {
-            const userId = req.params.id;
+            const userIdentifier = req.params.id;
             const { name, email, role, branch, isActive, permissions } = req.body;
             
-            const user = await User.findById(userId);
+            // Try to find user by MongoDB _id first, then by agentId
+            let user = null;
+            
+            // Check if it's a valid MongoDB ObjectId
+            if (userIdentifier.match(/^[0-9a-fA-F]{24}$/)) {
+                user = await User.findById(userIdentifier);
+            }
+            
+            // If not found by _id, try by agentId
+            if (!user) {
+                user = await User.findOne({ agentId: userIdentifier.toUpperCase() });
+            }
+            
             if (!user) {
                 return res.status(404).json({
                     success: false,
@@ -201,25 +232,36 @@ const userController = {
             });
         }
     },
-    
-    // Delete user (admin only)
+      // Delete user (admin only)
     deleteUser: async (req, res) => {
         try {
-            const userId = req.params.id;
+            const userIdentifier = req.params.id;
             
-            // Prevent admin from deleting themselves
-            if (userId === req.user.id) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Cannot delete your own account'
-                });
+            // Try to find user by MongoDB _id first, then by agentId
+            let user = null;
+            
+            // Check if it's a valid MongoDB ObjectId
+            if (userIdentifier.match(/^[0-9a-fA-F]{24}$/)) {
+                user = await User.findById(userIdentifier);
             }
             
-            const user = await User.findById(userId);
+            // If not found by _id, try by agentId
+            if (!user) {
+                user = await User.findOne({ agentId: userIdentifier.toUpperCase() });
+            }
+            
             if (!user) {
                 return res.status(404).json({
                     success: false,
                     message: 'User not found'
+                });
+            }
+            
+            // Prevent admin from deleting themselves
+            if (user._id.toString() === req.user.id) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Cannot delete your own account'
                 });
             }
             
@@ -240,11 +282,10 @@ const userController = {
             });
         }
     },
-    
-    // Reset user password (admin only)
+      // Reset user password (admin only)
     resetPassword: async (req, res) => {
         try {
-            const userId = req.params.id;
+            const userIdentifier = req.params.id;
             const { newPassword } = req.body;
             
             if (!newPassword || newPassword.length < 6) {
@@ -254,7 +295,19 @@ const userController = {
                 });
             }
             
-            const user = await User.findById(userId);
+            // Try to find user by MongoDB _id first, then by agentId
+            let user = null;
+            
+            // Check if it's a valid MongoDB ObjectId
+            if (userIdentifier.match(/^[0-9a-fA-F]{24}$/)) {
+                user = await User.findById(userIdentifier);
+            }
+            
+            // If not found by _id, try by agentId
+            if (!user) {
+                user = await User.findOne({ agentId: userIdentifier.toUpperCase() });
+            }
+            
             if (!user) {
                 return res.status(404).json({
                     success: false,
