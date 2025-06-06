@@ -727,3 +727,188 @@ button[type="button"] {
     border-color: #ccc;
     text-decoration: underline;
 }
+
+/* Agent Authentication Styles */
+.agent-login {
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 40px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e8f0;
+}
+
+.agent-login-form h2 {
+    color: var(--eclof-blue);
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 24px;
+}
+
+.agent-login-form p {
+    text-align: center;
+    color: #6b7280;
+    margin-bottom: 30px;
+}
+
+.agent-login .form-group {
+    margin-bottom: 20px;
+}
+
+.agent-login .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--eclof-blue);
+    font-size: 14px;
+}
+
+.agent-login .form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background-color: #ffffff;
+}
+
+.agent-login .form-group input:focus {
+    outline: none;
+    border-color: var(--eclof-green);
+    box-shadow: 0 0 0 3px rgba(0, 135, 81, 0.1);
+}
+
+.agent-login-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--eclof-green) 0%, #06a85e 100%);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0, 135, 81, 0.2);
+}
+
+.agent-login-btn:hover {
+    background: linear-gradient(135deg, #06a85e 0%, var(--eclof-green) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 135, 81, 0.3);
+}
+
+.agent-login-error {
+    color: #dc2626;
+    text-align: center;
+    margin-top: 15px;
+    font-weight: 600;
+    padding: 12px;
+    background-color: rgba(220, 38, 38, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    display: none;
+}
+
+.agent-help {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f0f9ff;
+    border-radius: 8px;
+    border: 1px solid #bfdbfe;
+}
+
+.agent-help h4 {
+    color: var(--eclof-blue);
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.agent-help ul {
+    margin-bottom: 15px;
+    padding-left: 20px;
+}
+
+.agent-help li {
+    margin-bottom: 5px;
+    color: #374151;
+}
+
+.agent-help p {
+    color: #6b7280;
+    font-style: italic;
+    margin: 0;
+    text-align: left;
+}
+
+/* Agent Status Bar */
+.agent-status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, var(--eclof-blue) 0%, #1e40af 100%);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.agent-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.agent-name {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.agent-branch {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.agent-logout-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.agent-logout-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.main-form-container {
+    width: 100%;
+}
+
+/* Mobile responsive agent login */
+@media (max-width: 768px) {
+    .agent-login {
+        margin: 20px auto;
+        padding: 25px;
+    }
+    
+    .agent-status-bar {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .agent-info {
+        align-items: center;
+    }
+}

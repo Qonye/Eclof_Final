@@ -6,14 +6,54 @@
     <title>ECLOF Kenya - Kiva Borrower Profile</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <div class="container">
+<body>    <div class="container">
         <header>
             <img src="images/logo.png" alt="ECLOF Kenya Logo" class="logo">
             <h1>Kiva Borrower Profile</h1>
         </header>
 
-        <form id="borrowerProfileForm" enctype="multipart/form-data">
+        <!-- Field Agent Login -->
+        <div class="agent-login" id="agentLogin">
+            <div class="agent-login-form">
+                <h2>Field Agent Login</h2>
+                <p>Please log in with your agent credentials to continue</p>
+                <form id="agentLoginForm">
+                    <div class="form-group">
+                        <label for="agentId">Agent ID</label>
+                        <input type="text" id="agentId" name="agentId" required placeholder="e.g., FA001, LO001">
+                    </div>
+                    <div class="form-group">
+                        <label for="agentPassword">Password</label>
+                        <input type="password" id="agentPassword" name="agentPassword" required>
+                    </div>
+                    <button type="submit" class="agent-login-btn">Login</button>
+                </form>
+                <div class="agent-login-error" id="agentLoginError"></div>
+                
+                <div class="agent-help">
+                    <h4>Agent ID Examples:</h4>
+                    <ul>
+                        <li><strong>FA001-FA004:</strong> Field Agents</li>
+                        <li><strong>LO001-LO002:</strong> Loan Officers</li>
+                        <li><strong>BM001-BM002:</strong> Branch Managers</li>
+                    </ul>
+                    <p><em>Contact your supervisor if you don't have login credentials.</em></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Form (hidden until agent login) -->
+        <div class="main-form-container" id="mainFormContainer" style="display: none;">
+            <!-- Agent Status Bar -->
+            <div class="agent-status-bar">
+                <div class="agent-info">
+                    <span class="agent-name" id="agentName"></span>
+                    <span class="agent-branch" id="agentBranch"></span>
+                </div>
+                <button class="agent-logout-btn" id="agentLogout">Logout</button>
+            </div>
+
+            <form id="borrowerProfileForm" enctype="multipart/form-data">
             <!-- Basic Information -->
             <div class="form-section">
                 <table class="basic-info">
@@ -162,14 +202,14 @@
                 <div class="important-note">
                     <p><strong>NB:</strong> If a borrower does not want to sign the client waiver, his/her profile cannot be posted on Kiva.</p>
                 </div>
-            </div>
-
-            <!-- Form Submission -->
+            </div>            <!-- Form Submission -->
             <div class="form-actions">
                 <button type="submit" id="submitForm">Submit Form</button>
                 <button type="button" id="resetForm">Reset Form</button>
             </div>
-        </form>
+            </form>
+        </div></div>
+        </div>
         
         <!-- Footer with Admin Link -->
         <footer class="site-footer">
@@ -182,6 +222,7 @@
         </footer>    </div>
 
     <script src="config.js"></script>
+    <script src="agent-config.js"></script>
     <script src="script.js"></script>
     <script src="admin-access.js"></script>
 </body>

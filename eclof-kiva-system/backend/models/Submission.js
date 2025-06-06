@@ -112,6 +112,30 @@ const submissionSchema = new mongoose.Schema({
     default: true // Since they're submitting the form with waiver
   },
   
+  // Field Agent Information
+  submittedBy: {
+    agentId: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    agentName: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    agentBranch: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    agentRole: {
+      type: String,
+      enum: ['field_agent', 'loan_officer', 'branch_manager', 'representative'],
+      default: 'field_agent'
+    }
+  },
+
   // System Information
   submissionId: {
     type: String,

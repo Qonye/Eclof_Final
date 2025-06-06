@@ -1,4 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if agent is logged in
+    checkAgentLogin();
+    
+    // Initialize agent login form
+    initializeAgentLogin();
+    
     // Initialize image upload functionality
     initImageUpload();
     
@@ -515,6 +521,15 @@ window.resetSignatures = function() {
 function createFormDataWithSignatures(form) {
     const formData = new FormData(form);
     
+    // Add agent information
+    const currentAgent = AgentAuth.getCurrentAgent();
+    if (currentAgent) {
+        formData.append('submittedBy[agentId]', currentAgent.agentId);
+        formData.append('submittedBy[agentName]', currentAgent.name);
+        formData.append('submittedBy[agentBranch]', currentAgent.branch);
+        formData.append('submittedBy[agentRole]', currentAgent.role);
+    }
+    
     // Handle client signature
     const clientSignatureCanvas = document.querySelector('#signatureBox canvas');
     if (clientSignatureCanvas) {
@@ -767,4 +782,107 @@ function showErrorMessage(message) {
             messageContainer.style.display = 'none';
         }
     }, 5000);
+}
+
+/**
+ * Check if agent is logged in and show appropriate interface
+ */
+function checkAgentLogin() {
+    if (AgentAuth.isLoggedIn()) {
+        showMainForm();
+    } else {
+        showAgentLogin();
+    }
+}
+
+/**
+ * Initialize agent login functionality
+ */
+function initializeAgentLogin() {
+    const agentLoginForm = document.getElementById('agentLoginForm');
+    const agentLogoutBtn = document.getElementById('agentLogout');
+    
+    if (agentLoginForm) {
+        agentLoginForm.addEventListener('submit', handleAgentLogin);
+    }
+    
+    if (agentLogoutBtn) {
+        agentLogoutBtn.addEventListener('click', handleAgentLogout);
+    }
+}
+
+/**
+ * Handle agent login form submission
+ */
+function handleAgentLogin(e) {
+    e.preventDefault();
+    
+    const agentId = document.getElementById('agentId').value.trim().toUpperCase();
+    const password = document.getElementById('agentPassword').value;
+    const errorDiv = document.getElementById('agentLoginError');
+    
+    // Clear previous errors
+    errorDiv.style.display = 'none';
+    errorDiv.textContent = '';
+    
+    // Authenticate agent
+    const authResult = AgentAuth.login(agentId, password);
+    
+    if (authResult.success) {
+        showMainForm();
+    } else {
+        errorDiv.textContent = authResult.message;
+        errorDiv.style.display = 'block';
+        
+        // Clear error after 5 seconds
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 5000);
+    }
+}
+
+/**
+ * Handle agent logout
+ */
+function handleAgentLogout() {
+    if (confirm('Are you sure you want to logout? Any unsaved form data will be lost.')) {
+        AgentAuth.logout();
+        showAgentLogin();
+    }
+}
+
+/**
+ * Show agent login interface
+ */
+function showAgentLogin() {
+    const agentLogin = document.getElementById('agentLogin');
+    const mainFormContainer = document.getElementById('mainFormContainer');
+    
+    if (agentLogin) agentLogin.style.display = 'block';
+    if (mainFormContainer) mainFormContainer.style.display = 'none';
+}
+
+/**
+ * Show main form interface
+ */
+function showMainForm() {
+    const agentLogin = document.getElementById('agentLogin');
+    const mainFormContainer = document.getElementById('mainFormContainer');
+    
+    if (agentLogin) agentLogin.style.display = 'none';
+    if (mainFormContainer) mainFormContainer.style.display = 'block';
+    
+    // Update agent status bar
+    updateAgentStatusBar();
+}
+
+/**
+ * Update agent status bar with current agent info
+ */
+function updateAgentStatusBar() {
+    const agentNameEl = document.getElementById('agentName');
+    const agentBranchEl = document.getElementById('agentBranch');
+    
+    if (agentNameEl) agentNameEl.textContent = AgentAuth.getAgentDisplayName();
+    if (agentBranchEl) agentBranchEl.textContent = AgentAuth.getAgentBranch();
 }

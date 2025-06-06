@@ -79,15 +79,21 @@ const createSubmission = async (req, res) => {
         imageUploads.representativeSignature = repSignatureResult;
       }
     }
-    
-    // Prepare the final submission data
+      // Prepare the final submission data
     const finalSubmissionData = {
       ...submissionData,
       ...imageUploads,
       submissionId,
       // Convert date strings to Date objects
       signatureDate: submissionData.signatureDate ? new Date(submissionData.signatureDate) : new Date(),
-      repSignatureDate: submissionData.repSignatureDate ? new Date(submissionData.repSignatureDate) : null
+      repSignatureDate: submissionData.repSignatureDate ? new Date(submissionData.repSignatureDate) : null,
+      // Add agent information if provided
+      submittedBy: submissionData.submittedBy ? {
+        agentId: submissionData.submittedBy.agentId,
+        agentName: submissionData.submittedBy.agentName,
+        agentBranch: submissionData.submittedBy.agentBranch,
+        agentRole: submissionData.submittedBy.agentRole
+      } : null
     };
       // Remove signature data URLs from final data (already processed as images)
     delete finalSubmissionData.clientSignature;

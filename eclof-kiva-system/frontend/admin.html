@@ -36,61 +36,164 @@
             </div>
         </div>        <div class="admin-dashboard" id="adminDashboard" style="display: none;">            <div class="dashboard-header">
                 <div>
-                    <h2><span class="dashboard-icon"></span>Borrower Profile Submissions</h2>
+                    <h2><span class="dashboard-icon"></span>ECLOF Kenya Admin Dashboard</h2>
                     <div class="status-indicator">
                         <span class="status-dot active"></span>
                         <span class="status-text">System Online</span>
                     </div>
                 </div>
                 <div class="dashboard-controls">
-                    <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="Search by name, ID or branch...">
-                        <button id="searchButton" class="admin-button">Search</button>
-                    </div>
-                    <div class="filter-box">
-                        <label for="dateFilter">Date Range:</label>
-                        <input type="date" id="startDate">
-                        <input type="date" id="endDate">
-                        <button id="filterDates" class="admin-button">Filter</button>
-                    </div>
-                    <button id="resetFilters" class="admin-button secondary">Reset Filters</button>
                     <button id="logoutButton" class="admin-button danger">Logout</button>
                 </div>
             </div>
             
-            <!-- Documentation Links in Dashboard -->
+            <!-- Tab Navigation -->
+            <div class="tab-navigation">
+                <button class="tab-button active" data-tab="submissions">
+                    <span class="tab-icon">📋</span>
+                    Submissions
+                </button>
+                <button class="tab-button" data-tab="agents">
+                    <span class="tab-icon">👥</span>
+                    Field Agents Management
+                </button>
+            </div>
+              <!-- Documentation Links in Dashboard -->
             <div class="dashboard-documentation">
                 <a href="ECLOF_Kenya_System_Overview.html" target="_blank" class="doc-link">System Overview</a>
                 <a href="ECLOF_Kenya_User_Guide.html" target="_blank" class="doc-link">User Guide</a>
             </div>
 
-            <div class="submissions-count">
-                <span id="totalSubmissions">0</span> submissions found
-            </div>
+            <!-- Tab Content Container -->
+            <div class="tab-content">
+                
+                <!-- Submissions Tab -->
+                <div class="tab-pane active" id="submissionsTab">
+                    <div class="tab-controls">
+                        <div class="search-box">
+                            <input type="text" id="searchInput" placeholder="Search by name, ID or branch...">
+                            <button id="searchButton" class="admin-button">Search</button>
+                        </div>
+                        <div class="filter-box">
+                            <label for="dateFilter">Date Range:</label>
+                            <input type="date" id="startDate">
+                            <input type="date" id="endDate">
+                            <button id="filterDates" class="admin-button">Filter</button>
+                        </div>
+                        <button id="resetFilters" class="admin-button secondary">Reset Filters</button>
+                    </div>
 
-            <div class="submissions-table-container">
-                <table class="submissions-table">
-                    <thead>
-                        <tr>
-                            <th>Submission ID</th>
-                            <th>Date</th>
-                            <th>Borrower Name</th>
-                            <th>Branch</th>
-                            <th>Loan Amount</th>
-                            <th>Client ID</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="submissionsTableBody">
-                        <!-- Submission rows will be populated here -->
-                    </tbody>
-                </table>
-            </div>
+                    <div class="submissions-count">
+                        <span id="totalSubmissions">0</span> submissions found
+                    </div>
 
-            <div class="pagination">
-                <button id="prevPage" class="admin-button secondary" disabled>Previous</button>
-                <span id="pageInfo">Page 1 of 1</span>
-                <button id="nextPage" class="admin-button secondary" disabled>Next</button>
+                    <div class="submissions-table-container">
+                        <table class="submissions-table">
+                            <thead>
+                                <tr>
+                                    <th>Submission ID</th>
+                                    <th>Date</th>
+                                    <th>Borrower Name</th>
+                                    <th>Branch</th>
+                                    <th>Loan Amount</th>
+                                    <th>Client ID</th>
+                                    <th>Submitted By</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="submissionsTableBody">
+                                <!-- Submission rows will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination">
+                        <button id="prevPage" class="admin-button secondary" disabled>Previous</button>
+                        <span id="pageInfo">Page 1 of 1</span>
+                        <button id="nextPage" class="admin-button secondary" disabled>Next</button>
+                    </div>
+                </div>
+
+                <!-- Field Agents Management Tab -->
+                <div class="tab-pane" id="agentsTab">
+                    <div class="agents-header">
+                        <h3>Field Agents Management</h3>
+                        <button id="addAgentButton" class="admin-button">Add New Agent</button>
+                    </div>
+
+                    <div class="agents-table-container">
+                        <table class="agents-table">
+                            <thead>
+                                <tr>
+                                    <th>Agent ID</th>
+                                    <th>Name</th>
+                                    <th>Branch</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="agentsTableBody">
+                                <!-- Agent rows will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>        </div>
+
+        <!-- Agent Management Modal -->
+        <div id="agentModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" id="closeAgentModal">&times;</span>
+                <h2 id="agentModalTitle">Add New Agent</h2>
+                <form id="agentForm">
+                    <div class="form-group">
+                        <label for="agentId">Agent ID</label>
+                        <input type="text" id="agentId" name="agentId" required 
+                               placeholder="e.g., FA005, LO003, BM003">
+                    </div>
+                    <div class="form-group">
+                        <label for="agentName">Full Name</label>
+                        <input type="text" id="agentName" name="agentName" required 
+                               placeholder="e.g., John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="agentBranch">Branch</label>
+                        <select id="agentBranch" name="agentBranch" required>
+                            <option value="">Select Branch</option>
+                            <option value="Nairobi Central">Nairobi Central</option>
+                            <option value="Kisumu Branch">Kisumu Branch</option>
+                            <option value="Mombasa Branch">Mombasa Branch</option>
+                            <option value="Eldoret Branch">Eldoret Branch</option>
+                            <option value="Nakuru Branch">Nakuru Branch</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="agentRole">Role</label>
+                        <select id="agentRole" name="agentRole" required>
+                            <option value="">Select Role</option>
+                            <option value="field_agent">Field Agent</option>
+                            <option value="loan_officer">Loan Officer</option>
+                            <option value="branch_manager">Branch Manager</option>
+                        </select>
+                    </div>                    <div class="form-group">
+                        <label for="agentPassword">Password</label>
+                        <div class="password-input-container">
+                            <input type="password" id="agentPassword" name="agentPassword" required 
+                                   placeholder="Enter secure password">
+                            <button type="button" class="password-toggle-btn" id="passwordToggle">
+                                <span class="toggle-icon">👁️</span>
+                            </button>
+                        </div>
+                        <small class="password-help" id="passwordHelp" style="display: none;">
+                            Password is now visible for agent verification
+                        </small>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="submit" class="admin-button" id="saveAgentButton">Save Agent</button>
+                        <button type="button" class="admin-button secondary" id="cancelAgentButton">Cancel</button>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -108,9 +211,8 @@
                     <button id="deleteSubmission" class="admin-button danger">Delete</button>
                 </div>
             </div>
-        </div>    </div>
-
-    <script src="config.js"></script>
+        </div>    </div>    <script src="config.js"></script>
+    <script src="agent-config.js"></script>
     <script src="admin-script.js"></script>
     <script src="admin-profile-generator.js"></script>
 </body>

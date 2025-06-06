@@ -30,20 +30,34 @@ document.addEventListener('DOMContentLoaded', function() {
     const exportPDFButton = document.getElementById('exportPDF');
     const deleteSubmissionButton = document.getElementById('deleteSubmission');
 
+    // Agent management elements
+    const agentsTabButton = document.querySelector('[data-tab="agents"]');
+    const submissionsTabButton = document.querySelector('[data-tab="submissions"]');
+    const agentsTab = document.getElementById('agentsTab');
+    const submissionsTab = document.getElementById('submissionsTab');
+    const addAgentButton = document.getElementById('addAgentButton');
+    const agentModal = document.getElementById('agentModal');
+    const closeAgentModal = document.getElementById('closeAgentModal');
+    const agentForm = document.getElementById('agentForm');
+    const agentModalTitle = document.getElementById('agentModalTitle');
+    const saveAgentButton = document.getElementById('saveAgentButton');
+    const cancelAgentButton = document.getElementById('cancelAgentButton');
+    const agentsTableBody = document.getElementById('agentsTableBody');
+
     // State
     let currentSubmissions = [];
     let filteredSubmissions = [];
     let currentPage = 1;
     let itemsPerPage = 10;
     let currentSubmissionId = null;
+    let isEditingAgent = false;
+    let editingAgentId = null;
 
     // Make currentSubmissionId accessible globally for the profile generator
     window.currentSubmissionId = null;
 
     // Check if the user is already logged in
-    checkLoginStatus();
-
-    // Event Listeners
+    checkLoginStatus();    // Event Listeners
     adminLoginForm.addEventListener('submit', handleLogin);
     logoutButton.addEventListener('click', handleLogout);
     searchButton.addEventListener('click', handleSearch);
@@ -55,6 +69,31 @@ document.addEventListener('DOMContentLoaded', function() {
     printSubmissionButton.addEventListener('click', printSubmissionDetails);
     exportPDFButton.addEventListener('click', exportSubmissionAsPDF);
     deleteSubmissionButton.addEventListener('click', handleDeleteSubmission);
+
+    // Tab navigation event listeners
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            switchTab(tabName);
+        });
+    });    // Agent management event listeners
+    if (addAgentButton) addAgentButton.addEventListener('click', showAddAgentModal);
+    if (closeAgentModal) closeAgentModal.addEventListener('click', hideAgentModal);
+    if (cancelAgentButton) cancelAgentButton.addEventListener('click', hideAgentModal);
+    if (agentForm) agentForm.addEventListener('submit', handleSaveAgent);
+    
+    // Password toggle event listener
+    const passwordToggle = document.getElementById('passwordToggle');
+    if (passwordToggle) {
+        passwordToggle.addEventListener('click', togglePasswordVisibility);
+    }
+    
+    // Close agent modal when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target === agentModal) {
+            hideAgentModal();
+        }
+    });
 
     // Handle login
     function handleLogin(e) {
@@ -137,10 +176,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const pageSubmissions = filteredSubmissions.slice(startIndex, endIndex);
         
         // Update total count
-        totalSubmissionsSpan.textContent = filteredSubmissions.length;
-          if (pageSubmissions.length === 0) {
+        totalSubmissionsSpan.textContent = filteredSubmissions.length;        if (pageSubmissions.length === 0) {
             const emptyRow = document.createElement('tr');
-            emptyRow.innerHTML = `<td colspan="7" style="text-align: center;">No submissions found</td>`;
+            emptyRow.innerHTML = `<td colspan="8" style="text-align: center;">No submissions found</td>`;
             submissionsTableBody.appendChild(emptyRow);
             return;
         }
@@ -162,11 +200,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
             }
-            
-            const name = submission.name || 'N/A';
+              const name = submission.name || 'N/A';
             const branch = submission.branch || 'N/A';
             const loanAmount = submission.loanAmount ? `KES ${Number(submission.loanAmount).toLocaleString()}` : 'N/A';
             const clientId = submission.clientId || 'N/A';
+            
+            // Format agent information
+            let submittedBy = 'N/A';
+            if (submission.submittedBy && submission.submittedBy.agentName) {
+                submittedBy = `${submission.submittedBy.agentName} (${submission.submittedBy.agentId})`;
+            }
             
             row.innerHTML = `
                 <td data-label="Submission ID">${submission._id}</td>
@@ -175,6 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td data-label="Branch">${branch}</td>
                 <td data-label="Loan Amount">${loanAmount}</td>
                 <td data-label="Client ID">${clientId}</td>
+                <td data-label="Submitted By">${submittedBy}</td>
                 <td data-label="Actions">
                     <div class="action-buttons">
                         <button class="action-button view-button" data-id="${submission._id}">View</button>
@@ -221,12 +265,19 @@ document.addEventListener('DOMContentLoaded', function() {
             // Reset to original list if search is empty
             filteredSubmissions = [...currentSubmissions];
         } else {        filteredSubmissions = currentSubmissions.filter(submission => {
-            // Search in common fields
-            return (
-                (submission.name && submission.name.toLowerCase().includes(searchTerm)) ||
-                (submission.branch && submission.branch.toLowerCase().includes(searchTerm)) ||
-                (submission.clientId && submission.clientId.toLowerCase().includes(searchTerm)) ||
-                (submission._id && submission._id.toLowerCase().includes(searchTerm))
+            // Search in common fields including agent information
+            const searchFields = [
+                submission.name,
+                submission.branch,
+                submission.clientId,
+                submission._id,
+                submission.submittedBy?.agentName,
+                submission.submittedBy?.agentId,
+                submission.submittedBy?.agentBranch
+            ].filter(Boolean); // Remove null/undefined values
+            
+            return searchFields.some(field => 
+                field.toLowerCase().includes(searchTerm)
             );
         });
         }
@@ -370,8 +421,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         }
-        
-        // Build the HTML for submission details
+          // Build the HTML for submission details
         let detailsHTML = `
             <div class="detail-section">
                 <h3>Basic Information</h3>
@@ -403,6 +453,38 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="detail-label">Group Name:</div>
                     <div>${submission.groupName || 'N/A'}</div>
                 </div>
+            </div>
+            
+            <div class="detail-section">
+                <h3>Field Agent Information</h3>`;
+        
+        if (submission.submittedBy) {
+            detailsHTML += `
+                <div class="detail-item">
+                    <div class="detail-label">Agent ID:</div>
+                    <div>${submission.submittedBy.agentId || 'N/A'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Agent Name:</div>
+                    <div>${submission.submittedBy.agentName || 'N/A'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Agent Branch:</div>
+                    <div>${submission.submittedBy.agentBranch || 'N/A'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Agent Role:</div>
+                    <div>${submission.submittedBy.agentRole ? submission.submittedBy.agentRole.replace('_', ' ').toUpperCase() : 'N/A'}</div>
+                </div>`;
+        } else {
+            detailsHTML += `
+                <div class="detail-item">
+                    <div class="detail-label">Agent Information:</div>
+                    <div>No agent information available</div>
+                </div>`;
+        }
+        
+        detailsHTML += `
             </div>
             
             <div class="detail-section">
@@ -456,7 +538,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div>${submission.address || 'N/A'}</div>
                 </div>
             </div>
-        `;        // Add images if available
+        `;// Add images if available
         const hasImages = submission.profileImage || submission.clientSignature || submission.representativeSignature;
         
         if (hasImages) {
@@ -849,32 +931,216 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Window click event to close modal if clicked outside
-    window.addEventListener('click', function(event) {
-        if (event.target === submissionModal) {
-            closeSubmissionModal();
+    // Tab Management Functions
+    function switchTab(tabName) {
+        // Remove active class from all tab buttons and panes
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+        
+        // Add active class to selected tab button and pane
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        document.getElementById(`${tabName}Tab`).classList.add('active');
+        
+        // Load data based on selected tab
+        if (tabName === 'submissions') {
+            loadSubmissions();
+        } else if (tabName === 'agents') {
+            loadAgents();
         }
-    });
+    }
     
-    // Debug function to help troubleshoot image loading issues
-    function addImageLoadEventListeners() {
-        const images = document.querySelectorAll('.submission-details img');
-        images.forEach(img => {
-            img.addEventListener('load', function() {
-                console.log('Image loaded successfully:', this.src);
-            });
+    // Agent Management Functions
+    function loadAgents() {
+        try {
+            // Get agents from localStorage or default agents
+            const agents = getStoredAgents();
+            displayAgents(agents);
+        } catch (error) {
+            console.error('Error loading agents:', error);
+            alert('Failed to load agents. Please try again.');
+        }
+    }
+    
+    function getStoredAgents() {
+        const storedAgents = localStorage.getItem('field_agents');
+        if (storedAgents) {
+            return JSON.parse(storedAgents);
+        }
+        
+        // If no stored agents, use default from agent-config.js
+        if (typeof FIELD_AGENTS !== 'undefined') {
+            localStorage.setItem('field_agents', JSON.stringify(FIELD_AGENTS));
+            return FIELD_AGENTS;
+        }
+        
+        return {};
+    }
+    
+    function saveStoredAgents(agents) {
+        localStorage.setItem('field_agents', JSON.stringify(agents));
+        // Also update the global FIELD_AGENTS if it exists
+        if (typeof window.FIELD_AGENTS !== 'undefined') {
+            window.FIELD_AGENTS = agents;
+        }
+    }
+    
+    function displayAgents(agents) {
+        agentsTableBody.innerHTML = '';
+        
+        if (Object.keys(agents).length === 0) {
+            const emptyRow = document.createElement('tr');
+            emptyRow.innerHTML = `<td colspan="6" style="text-align: center;">No agents found</td>`;
+            agentsTableBody.appendChild(emptyRow);
+            return;
+        }
+        
+        Object.entries(agents).forEach(([agentId, agent]) => {
+            const row = document.createElement('tr');
+            const roleClass = agent.role || 'field_agent';
+            const roleName = (agent.role || 'field_agent').replace('_', ' ').toUpperCase();
             
-            img.addEventListener('error', function() {
-                console.error('Failed to load image:', this.src);
-                // Replace with a placeholder image
-                this.src = 'images/image-placeholder.png';
-                // Add a message below the image
-                const errorMsg = document.createElement('p');
-                errorMsg.textContent = 'Image could not be loaded. It may be available after profile generation.';
-                errorMsg.style.color = 'red';
-                errorMsg.style.fontSize = '0.8em';
-                this.parentNode.insertBefore(errorMsg, this.nextSibling);
+            row.innerHTML = `
+                <td data-label="Agent ID">${agentId}</td>
+                <td data-label="Name">${agent.name}</td>
+                <td data-label="Branch">${agent.branch}</td>
+                <td data-label="Role">
+                    <span class="agent-role ${roleClass}">${roleName}</span>
+                </td>
+                <td data-label="Status">
+                    <span class="agent-status active">ACTIVE</span>
+                </td>
+                <td data-label="Actions">
+                    <div class="agent-actions">
+                        <button class="agent-action-btn edit" data-agent-id="${agentId}">Edit</button>
+                        <button class="agent-action-btn delete" data-agent-id="${agentId}">Delete</button>
+                    </div>
+                </td>
+            `;
+            
+            agentsTableBody.appendChild(row);
+        });
+        
+        // Add event listeners to action buttons
+        attachAgentActionListeners();
+    }
+    
+    function attachAgentActionListeners() {
+        // Edit buttons
+        document.querySelectorAll('.agent-action-btn.edit').forEach(button => {
+            button.addEventListener('click', function() {
+                const agentId = this.getAttribute('data-agent-id');
+                editAgent(agentId);
             });
         });
+        
+        // Delete buttons
+        document.querySelectorAll('.agent-action-btn.delete').forEach(button => {
+            button.addEventListener('click', function() {
+                const agentId = this.getAttribute('data-agent-id');
+                deleteAgent(agentId);
+            });
+        });
+    }
+    
+    function showAddAgentModal() {
+        isEditingAgent = false;
+        editingAgentId = null;
+        agentModalTitle.textContent = 'Add New Agent';
+        saveAgentButton.textContent = 'Add Agent';
+        agentForm.reset();
+        agentModal.style.display = 'block';
+    }
+    
+    function editAgent(agentId) {
+        const agents = getStoredAgents();
+        const agent = agents[agentId];
+        
+        if (!agent) {
+            alert('Agent not found');
+            return;
+        }
+        
+        isEditingAgent = true;
+        editingAgentId = agentId;
+        agentModalTitle.textContent = 'Edit Agent';
+        saveAgentButton.textContent = 'Update Agent';
+        
+        // Fill form with agent data
+        document.getElementById('agentId').value = agentId;
+        document.getElementById('agentName').value = agent.name;
+        document.getElementById('agentBranch').value = agent.branch;
+        document.getElementById('agentRole').value = agent.role;
+        document.getElementById('agentPassword').value = agent.password;
+        
+        // Disable agent ID field when editing
+        document.getElementById('agentId').disabled = true;
+        
+        agentModal.style.display = 'block';
+    }
+    
+    function deleteAgent(agentId) {
+        if (!confirm(`Are you sure you want to delete agent ${agentId}? This action cannot be undone.`)) {
+            return;
+        }
+        
+        const agents = getStoredAgents();
+        delete agents[agentId];
+        saveStoredAgents(agents);
+        displayAgents(agents);
+        
+        alert(`Agent ${agentId} has been deleted successfully.`);
+    }
+    
+    function hideAgentModal() {
+        agentModal.style.display = 'none';
+        agentForm.reset();
+        document.getElementById('agentId').disabled = false;
+        isEditingAgent = false;
+        editingAgentId = null;
+    }
+    
+    function handleSaveAgent(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(agentForm);
+        const agentData = {
+            name: formData.get('agentName').trim(),
+            branch: formData.get('agentBranch'),
+            role: formData.get('agentRole'),
+            password: formData.get('agentPassword')
+        };
+        
+        const agentId = formData.get('agentId').trim().toUpperCase();
+        
+        // Validation
+        if (!agentId || !agentData.name || !agentData.branch || !agentData.role || !agentData.password) {
+            alert('Please fill in all required fields.');
+            return;
+        }
+        
+        // Validate agent ID format
+        if (!/^(FA|LO|BM)\d{3}$/.test(agentId)) {
+            alert('Agent ID must follow the format: FA001, LO001, or BM001');
+            return;
+        }
+        
+        const agents = getStoredAgents();
+        
+        // Check for duplicate agent ID (only when adding new agent)
+        if (!isEditingAgent && agents[agentId]) {
+            alert(`Agent ID ${agentId} already exists. Please choose a different ID.`);
+            return;
+        }
+        
+        // Save agent
+        agents[agentId] = agentData;
+        saveStoredAgents(agents);
+        
+        // Refresh display
+        displayAgents(agents);
+        hideAgentModal();
+        
+        const action = isEditingAgent ? 'updated' : 'added';
+        alert(`Agent ${agentId} has been ${action} successfully.`);
     }
 });
