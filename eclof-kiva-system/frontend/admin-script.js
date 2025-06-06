@@ -12,12 +12,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const startDateInput = document.getElementById('startDate');
     const endDateInput = document.getElementById('endDate');
     const filterDatesButton = document.getElementById('filterDates');
-    const resetFiltersButton = document.getElementById('resetFilters');
-    const prevPageButton = document.getElementById('prevPage');
+    const resetFiltersButton = document.getElementById('resetFilters');    const prevPageButton = document.getElementById('prevPage');
     const nextPageButton = document.getElementById('nextPage');
     const pageInfoSpan = document.getElementById('pageInfo');
     const submissionModal = document.getElementById('submissionModal');
-    const closeModal = document.querySelector('.close-modal');
+    const closeSubmissionModalBtn = document.getElementById('closeSubmissionModal');
     const submissionDetails = document.getElementById('submissionDetails');
     const printSubmissionButton = document.getElementById('printSubmission');
     const exportPDFButton = document.getElementById('exportPDF');
@@ -53,12 +52,11 @@ document.addEventListener('DOMContentLoaded', function() {
     checkLoginStatus();    // Event Listeners
     adminLoginForm.addEventListener('submit', handleLogin);
     logoutButton.addEventListener('click', handleLogout);
-    searchButton.addEventListener('click', handleSearch);
-    filterDatesButton.addEventListener('click', handleDateFilter);
+    searchButton.addEventListener('click', handleSearch);    filterDatesButton.addEventListener('click', handleDateFilter);
     resetFiltersButton.addEventListener('click', resetFilters);
     prevPageButton.addEventListener('click', goToPreviousPage);
     nextPageButton.addEventListener('click', goToNextPage);
-    closeModal.addEventListener('click', closeSubmissionModal);
+    if (closeSubmissionModalBtn) closeSubmissionModalBtn.addEventListener('click', closeSubmissionModal);
     printSubmissionButton.addEventListener('click', printSubmissionDetails);
     exportPDFButton.addEventListener('click', exportSubmissionAsPDF);
     deleteSubmissionButton.addEventListener('click', handleDeleteSubmission);
@@ -80,13 +78,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (passwordToggle) {
         passwordToggle.addEventListener('click', togglePasswordVisibility);
     }
-    
-    // Close agent modal when clicking outside
+      // Close modals when clicking outside
     window.addEventListener('click', function(event) {
         if (event.target === agentModal) {
             hideAgentModal();
         }
-    });    // Handle login
+        if (event.target === submissionModal) {
+            closeSubmissionModal();
+        }
+    });// Handle login
     async function handleLogin(e) {
         e.preventDefault();
         

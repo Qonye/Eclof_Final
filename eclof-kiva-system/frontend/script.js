@@ -1,3 +1,7 @@
+// Global variables for signature pads
+let clientSignaturePad = null;
+let repSignaturePad = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     // Check if agent is logged in
     checkAgentLogin();
@@ -9,8 +13,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initImageUpload();
     
     // Initialize signature pads
-    const clientSignaturePad = initializeSignaturePad('signatureBox');
-    const repSignaturePad = initializeSignaturePad('repSignatureBox');
+    clientSignaturePad = initializeSignaturePad('signatureBox');
+    repSignaturePad = initializeSignaturePad('repSignatureBox');
     
     // Clear signature buttons - Fix to properly clear signatures
     document.getElementById('clearSignature').addEventListener('click', function(e) {
@@ -459,22 +463,41 @@ function resetImagePreview() {
  * Validate form before submission
  */
 function validateForm() {
-    // Check required fields
-    const requiredFields = document.querySelectorAll('input[required], textarea[required]');
+    console.log('Starting form validation...');
+    
+    // Check required fields ONLY within the borrower profile form
+    const borrowerForm = document.getElementById('borrowerProfileForm');
+    const requiredFields = borrowerForm.querySelectorAll('input[required], textarea[required]');
+    console.log(`Found ${requiredFields.length} required fields in borrower form`);
+    
     for (let field of requiredFields) {
-        if (!field.value.trim()) {
+        const fieldValue = field.value.trim();
+        console.log(`Checking field ${field.name || field.id}: "${fieldValue}"`);
+        
+        if (!fieldValue) {
+            console.log(`Field ${field.name || field.id} is empty`);
             alert('Please fill out all required fields');
             field.focus();
             return false;
         }
     }
     
+    console.log('All required fields are filled');
+    
     // Check client signature (if using signature pad)
-    const clientSignaturePad = document.getElementById('signatureBox');
-    if (clientSignaturePad && typeof clientSignaturePad.isEmpty === 'function' && clientSignaturePad.isEmpty()) {
-        alert('Please provide your signature');
-        return false;
+    if (clientSignaturePad && typeof clientSignaturePad.isEmpty === 'function') {
+        const signatureEmpty = clientSignaturePad.isEmpty();
+        console.log(`Client signature is empty: ${signatureEmpty}`);
+        
+        if (signatureEmpty) {
+            alert('Please provide your signature');
+            return false;
+        }
+    } else {
+        console.log('Client signature pad not available or isEmpty function missing');
     }
+    
+    console.log('Client signature validation passed');
     
     // Check profile image (optional but recommended)
     const profileImage = document.getElementById('profileImage');
