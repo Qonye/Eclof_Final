@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }    // Load submissions from the server
     function loadSubmissions() {
-        fetch('/api/submissions')
+        fetch(window.AppConfig.getSubmissionsUrl())
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to fetch submissions');
@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }    // View submission details
     function viewSubmissionDetails(submissionId) {
-        fetch(`/api/submissions/${submissionId}`)
+        fetch(window.AppConfig.getSubmissionUrl(submissionId))
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to fetch submission details');
@@ -428,9 +428,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div>${submission.address || 'N/A'}</div>
                 </div>
             </div>
-        `;
-          // Add images if available
-        const hasImages = submission.profileImageUrl || submission.clientSignatureUrl || submission.repSignatureUrl;
+        `;        // Add images if available
+        const hasImages = submission.profileImage || submission.clientSignature || submission.representativeSignature;
         
         if (hasImages) {
             detailsHTML += `
@@ -439,10 +438,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="borrower-images">
             `;
             
-            if (submission.profileImageUrl) {
+            if (submission.profileImage) {
+                const profileImageUrl = typeof submission.profileImage === 'object' ? 
+                    submission.profileImage.url : submission.profileImage;
                 detailsHTML += `
                     <div class="image-container">
-                        <img src="${submission.profileImageUrl}" alt="Profile Image" id="profileImage">
+                        <img src="${profileImageUrl}" alt="Profile Image" id="profileImage">
                         <div class="image-label">Profile Photo</div>
                         <div class="image-actions">
                             <button class="image-action-btn download-image" data-image-type="profile">Download</button>
@@ -459,19 +460,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             }
             
-            if (submission.clientSignatureUrl) {
+            if (submission.clientSignature) {
+                const clientSignatureUrl = typeof submission.clientSignature === 'object' ? 
+                    submission.clientSignature.url : submission.clientSignature;
                 detailsHTML += `
                     <div class="image-container">
-                        <img src="${submission.clientSignatureUrl}" alt="Client Signature" id="clientSignatureImage">
+                        <img src="${clientSignatureUrl}" alt="Client Signature" id="clientSignatureImage">
                         <div class="image-label">Client Signature</div>
                     </div>
                 `;
             }
             
-            if (submission.repSignatureUrl) {
+            if (submission.representativeSignature) {
+                const repSignatureUrl = typeof submission.representativeSignature === 'object' ? 
+                    submission.representativeSignature.url : submission.representativeSignature;
                 detailsHTML += `
                     <div class="image-container">
-                        <img src="${submission.repSignatureUrl}" alt="Representative Signature" id="repSignatureImage">
+                        <img src="${repSignatureUrl}" alt="Representative Signature" id="repSignatureImage">
                         <div class="image-label">Representative Signature</div>
                     </div>
                 `;
@@ -672,7 +677,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(`File: ${file.name}, Size: ${file.size}, Type: ${file.type}`);
         
         // Upload the image
-        fetch(`/api/admin/submissions/${currentSubmissionId}/image`, {
+        fetch(`${window.AppConfig.API_BASE_URL}/api/submissions/${currentSubmissionId}/image`, {
             method: 'POST',
             body: formData
         })
@@ -786,7 +791,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }    // Delete a submission
     function deleteSubmission(submissionId) {
-        fetch(`/api/submissions/${submissionId}`, {
+        fetch(window.AppConfig.getDeleteSubmissionUrl(submissionId), {
             method: 'DELETE'
         })
         .then(response => {
