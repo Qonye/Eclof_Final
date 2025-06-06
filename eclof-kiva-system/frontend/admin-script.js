@@ -954,16 +954,20 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (tabName === 'agents') {
             loadAgents();
         }
-    }
-      // Agent Management Functions
+    }      // Agent Management Functions
     async function loadAgents() {
         try {
+            console.log('Loading agents from API...');
+            console.log('Admin logged in:', AdminAuth.isLoggedIn());
+            console.log('Admin token:', AdminAuth.getAuthToken());
+            
             // Get agents from API instead of localStorage
             const users = await UserManagementAPI.getAllUsers();
+            console.log('Fetched users:', users);
             displayAgents(users);
         } catch (error) {
             console.error('Error loading agents:', error);
-            alert('Failed to load agents. Please try again.');
+            alert(`Failed to load agents: ${error.message}`);
         }
     }
     
