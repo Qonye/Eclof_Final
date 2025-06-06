@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Authentication</title>
+</head>
+<body>
+    <h1>Test Authentication</h1>
+    <div>
+        <h2>Admin Login Test</h2>
+        <button onclick="testAdminLogin()">Test Admin Login (AD001 / eclof2025)</button>
+        <div id="adminResult"></div>
+    </div>
+    
+    <div>
+        <h2>Fetch Users Test</h2>
+        <button onclick="testFetchUsers()">Test Fetch Users</button>
+        <div id="usersResult"></div>
+    </div>
+
+    <script src="auth-api.js"></script>
+    <script>
+        async function testAdminLogin() {
+            const resultDiv = document.getElementById('adminResult');
+            resultDiv.innerHTML = 'Testing admin login...';
+            
+            try {
+                const result = await AdminAuth.login('AD001', 'eclof2025');
+                resultDiv.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+                
+                if (result.success) {
+                    resultDiv.innerHTML += '<br><strong>✅ Admin login successful!</strong>';
+                } else {
+                    resultDiv.innerHTML += '<br><strong>❌ Admin login failed!</strong>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+                console.error('Admin login error:', error);
+            }
+        }
+        
+        async function testFetchUsers() {
+            const resultDiv = document.getElementById('usersResult');
+            resultDiv.innerHTML = 'Testing fetch users...';
+            
+            try {
+                const users = await UserManagementAPI.getAllUsers();
+                resultDiv.innerHTML = `<pre>${JSON.stringify(users, null, 2)}</pre>`;
+                resultDiv.innerHTML += `<br><strong>✅ Found ${users.length} users</strong>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+                console.error('Fetch users error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
