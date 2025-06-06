@@ -111,9 +111,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const generateProfileButton = document.getElementById('generateProfile');
             const originalText = generateProfileButton.textContent;
             generateProfileButton.textContent = 'Generating...';
-            generateProfileButton.disabled = true;
-              // Make API request to generate profile
-            fetch(`/api/submissions/${window.currentSubmissionId}/generate-profile`, {
+            generateProfileButton.disabled = true;              // Make API request to generate profile
+            fetch(window.AppConfig.getGenerateProfileUrl(window.currentSubmissionId), {
                 method: 'POST'
             })
             .then(response => {
@@ -189,10 +188,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Check if we already have the submission data
             if (window.currentSubmissionData) {
-                addImageFromSubmissionData(window.currentSubmissionData);
-            } else {
-                // Fetch the submission data if we don't have it yet
-                fetch(`/api/admin/submissions/${window.currentSubmissionId}`)
+                addImageFromSubmissionData(window.currentSubmissionData);            } else {                // Fetch the submission data if we don't have it yet
+                fetch(window.AppConfig.getSubmissionUrl(window.currentSubmissionId))
                     .then(response => response.json())
                     .then(submission => {
                         window.currentSubmissionData = submission;
@@ -208,32 +205,31 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
             }
         }
-        
-        // Helper function to add image from submission data
+          // Helper function to add image from submission data
         function addImageFromSubmissionData(submission) {
             const imageContainer = document.getElementById('profileImageContainer');
             if (!imageContainer) return;
             
-            // Check for a profile image path
-            if (submission && submission.profileImagePath) {
-                const img = document.createElement('img');
-                
-                // Fix the path - convert absolute path to relative path
-                let imgSrc = submission.profileImagePath;
-                
-                // Check if it's an absolute path and extract the relative part
-                if (imgSrc.includes('\\uploads\\') || imgSrc.includes('/uploads/')) {
-                    // Extract just the filename from the path
-                    const pathParts = imgSrc.split(/[\\\/]/);
-                    const filename = pathParts[pathParts.length - 1];
-                    imgSrc = `/uploads/${filename}`;
+            // Check for a profile image - handle both object and direct URL structures
+            let profileImageUrl = null;
+            
+            if (submission && submission.profileImage) {
+                if (typeof submission.profileImage === 'object' && submission.profileImage.url) {
+                    // Cloudinary object structure
+                    profileImageUrl = submission.profileImage.url;
+                } else if (typeof submission.profileImage === 'string') {
+                    // Direct URL string
+                    profileImageUrl = submission.profileImage;
                 }
-                
-                img.src = imgSrc;
+            }
+            
+            if (profileImageUrl) {
+                const img = document.createElement('img');
+                img.src = profileImageUrl;
                 img.alt = 'Borrower Profile Image';
                 img.className = 'borrower-profile-image';
                 img.onerror = function() {
-                    console.error('Image failed to load:', imgSrc);
+                    console.error('Image failed to load:', profileImageUrl);
                     this.onerror = null;
                     this.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9IiNjY2MiIGQ9Ik0xMiAxMkM5LjggMTIgOCAxMC4yIDggOHMyLjgtNCA0LTRzNCAyLjggNCA0cy0yLjggNC00IDRtMCAyYzIuNyAwIDggMS41IDggNHY0SDF2LTRjMC0yLjUgNS4zLTQgOC00bTMgNmMwLTEuMSAxLjktMiAzLTJzMyAuOSAzIDJ2Mkg3di0yeiIvPjwvc3ZnPg=='; // Default image
                 };
@@ -523,11 +519,9 @@ if (typeof window.viewSubmissionDetails === 'function') {
         
         if (typeof window.originalViewSubmissionDetails === 'function') {
             window.originalViewSubmissionDetails(submissionId);
-        }
-        
-        // If there's already a generated profile, display it
+        }        // If there's already a generated profile, display it
         setTimeout(() => {
-            fetch(`/api/admin/submissions/${submissionId}`)
+            fetch(window.AppConfig.getSubmissionUrl(submissionId))
                 .then(response => response.json())
                 .then(submission => {
                     currentSubmissionData = submission;

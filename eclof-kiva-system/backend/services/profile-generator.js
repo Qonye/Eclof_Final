@@ -12,68 +12,75 @@ const USE_MOCK_RESPONSES = process.env.USE_MOCK_RESPONSES === 'true' || false;
 
 // Function to generate a professional profile based on borrower data
 async function generateProfile(borrowerData) {
-  try {
-    // Extract relevant data from the borrower information (MongoDB structure)
+  try {    // Extract relevant data from the borrower information (from controller)
     const {
       fullName,
-      age,
-      gender,
-      maritalStatus,
-      numberOfChildren,
       location,
-      businessName,
-      businessType,
       businessDescription,
-      businessExperience,
-      monthlyIncome,
       loanAmount,
       loanPurpose,
+      background,
+      challenges,
+      community,
+      previousLoans,
       expectedImpact
     } = borrowerData;
+    
+    // Validate critical fields and provide meaningful defaults
+    if (!fullName || fullName.trim() === '' || fullName === 'Not specified') {
+      console.warn('WARNING: No valid name provided for profile generation. fullName:', fullName);
+      console.warn('Borrower data received:', JSON.stringify(borrowerData, null, 2));
+      return {
+        success: false,
+        error: 'Borrower name is required for profile generation. Please ensure the name field is properly filled.'
+      };
+    }
+    
+    // Set default values for fields not in the form
+    const businessName = businessDescription;
+    const businessType = 'Small business';
 
     // Check if mock responses are enabled (for testing when API is unavailable)
     if (USE_MOCK_RESPONSES || !OPENAI_API_KEY) {
       console.log('Using mock profile response (API key not provided or mock mode enabled)');
       return generateMockProfile(borrowerData);
-    }
-
-    // Create a prompt based on the NLP.md guidelines
-        const prompt = `
+    }    // Create a prompt based on the NLP.md guidelines with available data
+    const prompt = `
 Please create a professional borrower profile for Kiva based on the following information:
 
 BORROWER INFORMATION:
-Name: ${fullName}
-Age: ${age} years old
-Gender: ${gender}
-Marital Status: ${maritalStatus}
-Number of Children: ${numberOfChildren || 0}
-Location: ${location}
-Business Name: ${businessName}
-Business Type: ${businessType}
-Business Description: ${businessDescription}
-Business Experience: ${businessExperience} years
-Monthly Income: ${monthlyIncome ? `${monthlyIncome.toLocaleString()} KES` : 'Not specified'}
+Name: ${fullName || 'Not specified'}
+Location: ${location || 'Kenya'}
+Business: ${businessDescription || businessName || businessType || 'Small business'}
 Loan Amount: ${loanAmount ? `${loanAmount.toLocaleString()} KES` : 'Not specified'}
-Loan Purpose: ${loanPurpose}
-Expected Impact: ${expectedImpact}
+Loan Purpose: ${loanPurpose || 'Business development'}
+
+ADDITIONAL DETAILS:
+Background: ${borrowerData.background || 'Not specified'}
+Business Challenges: ${borrowerData.challenges || 'Not specified'}
+Community Contribution: ${borrowerData.community || 'Not specified'}
+Previous Loans: ${borrowerData.previousLoans || 'Not specified'}
+Expected Impact: ${expectedImpact || 'Business growth and community development'}
 
 GUIDELINES:
-1. Concisely summarize the borrower in a single paragraph consisting of 10 or 11 sentences. Emphasize the borrower's name in **bold**.
-2. Include a subtle, appropriate humorous pun in the summary that relates to their business or situation.
-3. Ensure proper grammar, capitalization, punctuation, and consistent pronoun usage.
-4. Format monetary values with currency (e.g., "30,000 KES").
-5. Replace all mentions of "ECLOF" with "ECLOF-Kenya Limited, Kiva's field partner".
-6. Create a catchy title that describes the loan usage with specific examples.
-7. Avoid mentioning group/branch names, and generalize business references.
-8. Use appropriate pronouns based on the gender provided.
+1. Create a concise, professional borrower profile in a single paragraph of 8-10 sentences.
+2. Emphasize the borrower's name in **bold** at the beginning.
+3. Include specific details about their business and loan purpose.
+4. Mention how the loan will help them overcome challenges and contribute to their community.
+5. Use appropriate pronouns (assume they/them if gender not specified).
+6. Format monetary values with "KES" currency.
+7. Replace any mentions of "ECLOF" with "ECLOF-Kenya Limited, Kiva's field partner".
+8. Create a compelling title that reflects their business or loan purpose.
+9. Keep the tone professional but warm and engaging.
+10. Focus on their resilience, business acumen, and community impact.
 
-OUTPUT FORMAT:
+OUTPUT FORMAT (return only valid JSON):
 {
-  "title": "Title Related to Loan Usage",
-  "profile": "Professional 10-11 sentence summary with borrower name in bold...",
+  "title": "Descriptive title related to their business or loan purpose",
+  "profile": "Professional 8-10 sentence summary with borrower name in **bold**...",
   "metadata": {
-    "key_points": ["3-5 key points from the profile"],
-    "sentiment": "brief analysis of borrower situation"
+    "key_points": ["3-4 key highlights from the profile"],
+    "sentiment": "brief positive assessment of borrower potential"
   }
 }
 `;
@@ -147,27 +154,40 @@ OUTPUT FORMAT:
 
 // Generate a mock profile for testing or when API is unavailable
 function generateMockProfile(borrowerData) {
-  const { name, loanAmount, loanPurpose, business } = borrowerData;
+  const { fullName, loanAmount, loanPurpose, businessDescription, background, expectedImpact } = borrowerData;
+  
+  // Validate that we have a name for the profile
+  if (!fullName || fullName.trim() === '' || fullName === 'Not specified') {
+    console.warn('WARNING: Mock profile generator - No valid name provided. fullName:', fullName);
+    return {
+      success: false,
+      error: 'Borrower name is required for profile generation. Please ensure the name field is properly filled.'
+    };
+  }
   
   // Create reasonable titles based on loan purpose
   let title = "Expanding Retail Business with Improved Inventory and Equipment";
-  let profile = `**${name}** is a 42-year-old mother of three who runs a growing retail shop in a Nairobi neighborhood. She has been in business for five years, starting with just a small table and now owning a proper shop that serves her local community. Her shop has become an essential part of the community, saving neighbors the long walk to more distant markets, and she has plans to stock up and expand with this 65,000 KES loan. The funds will specifically be used for new shelving units (5,000 KES), refrigeration equipment (25,000 KES), and additional inventory (35,000 KES) to create a fresh produce section. With her previous loan from ECLOF-Kenya Limited, Kiva's field partner, she demonstrated excellent financial responsibility by repaying 20,000 KES six months ahead of schedule. ${name}'s retail aspirations are truly "on the shelf" for success as she aims to eventually grow her business into a chain of mini-supermarkets serving multiple communities. Beyond her business goals, she is passionate about mentoring other female entrepreneurs and hopes to create a foundation to help women start businesses. With increased profits from her expanded inventory, she plans to support her children's education, including her eldest son who is studying IT in college.`;
   
-  // If the business involves farming or dairy, use a different template
-  if (business && business.toLowerCase().includes('farm')) {
-    title = "Agricultural Enhancement with Modern Equipment and Techniques";
-    profile = `**${name}** is a dedicated farmer who has built a sustainable agricultural business that serves the local community. With a previous loan that was fully repaid ahead of schedule, ${name} has proven to be a reliable borrower who understands how to grow both crops and business opportunities. This new loan of ${loanAmount || '65,000'} KES will be "planted" wisely to yield impressive returns through the purchase of improved farming equipment and high-quality seeds. The farm currently employs local workers during harvest seasons, creating important income opportunities in the area. Beyond providing fresh produce to local markets, ${name} also participates in community initiatives and shares farming knowledge with neighbors. Previous support from ECLOF-Kenya Limited, Kiva's field partner, helped expand the farming operation, resulting in increased productivity and income. ${name}'s future plans include adding value-added processing to increase profit margins and create more employment opportunities. With a strong track record of agricultural success and financial responsibility, this loan represents a sound investment in both a business and a community leader.`;
+  // Use available data to create a personalized profile
+  const borrowerName = fullName;
+  const businessDesc = businessDescription || 'retail business';
+  const amount = loanAmount ? `${loanAmount.toLocaleString()} KES` : '65,000 KES';
+  const purpose = loanPurpose || 'business expansion';
+  const plans = expectedImpact || 'continue growing the business and supporting the community';
+  
+  let profile = `**${borrowerName}** operates a thriving ${businessDesc} that has become an essential part of their local community. With a proven track record of financial responsibility, they have successfully managed previous loans and demonstrated strong business acumen. This ${amount} loan will be strategically invested in ${purpose}, enabling significant business growth and increased community impact. The borrower has shown remarkable resilience in overcoming business challenges and has consistently found innovative ways to serve their customers better. Their business not only provides essential services to the local community but also creates employment opportunities for others. Previous support from ECLOF-Kenya Limited, Kiva's field partner, has helped establish a solid foundation for growth. The borrower's commitment to community development extends beyond their business, as they actively participate in local initiatives and mentor other entrepreneurs. With this new funding, they plan to expand their operations, improve service quality, and create additional income streams. Looking to the future, ${borrowerName} hopes to ${plans}, demonstrating their long-term vision and commitment to both business success and community development.`;
+  
+  // If specific background information is available, incorporate it
+  if (background && background !== 'Not specified') {
+    profile = `**${borrowerName}** brings ${background.toLowerCase()} to their ${businessDesc} operations. ` + profile.substring(profile.indexOf('operates') + 8);
   }
   
-  // Personalize based on the loan amount if available
-  const loanAmountText = loanAmount ? `${loanAmount} KES` : "this loan";
-  
-  // Create metadata
+  // Create metadata based on available information
   const keyPoints = [
-    `${name} runs a retail business in Nairobi that serves the local community`,
-    "Previous loan was repaid ahead of schedule, demonstrating financial responsibility",
-    "Loan will fund shelving, refrigeration equipment, and expanded inventory",
-    "Plans to grow into a chain of mini-supermarkets and mentor other entrepreneurs"
+    `${borrowerName} operates a ${businessDesc} serving the local community`,
+    "Demonstrated financial responsibility with previous loan repayments",
+    `${amount} loan will fund ${purpose} and business expansion`,
+    "Strong commitment to community development and mentoring other entrepreneurs"
   ];
   
   return {

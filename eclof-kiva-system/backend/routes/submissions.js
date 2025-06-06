@@ -7,7 +7,8 @@ const {
   getSubmission,
   generateSubmissionProfile,
   updateSubmissionStatus,
-  deleteSubmission
+  deleteSubmission,
+  updateSubmissionImage
 } = require('../controllers/submissionController');
 
 const router = express.Router();
@@ -50,6 +51,7 @@ router.post('/', uploadFields, createSubmission);
 router.get('/', getSubmissions);
 router.get('/:id', getSubmission);
 router.post('/:id/generate-profile', generateSubmissionProfile);
+router.post('/:id/image', upload.single('image'), updateSubmissionImage);
 router.put('/:id/status', updateSubmissionStatus);
 router.delete('/:id', deleteSubmission);
 

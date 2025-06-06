@@ -231,11 +231,41 @@ const generateSubmissionProfile = async (req, res) => {
       });
     }
     
-    // Generate profile using OpenAI
-    const generatedProfile = await generateProfile(submission);
+    // Map submission fields to profile generator expected format
+    const borrowerData = {
+      fullName: submission.name,
+      age: submission.age || 'Not specified',
+      gender: submission.gender || 'Not specified', 
+      maritalStatus: submission.maritalStatus || 'Not specified',
+      numberOfChildren: submission.numberOfChildren || 0,
+      location: submission.branch, // Use branch as location
+      businessName: submission.business || 'Small Business',
+      businessType: submission.business || 'Small Business',
+      businessDescription: submission.business || '',
+      businessExperience: submission.businessExperience || 'Several years',
+      monthlyIncome: submission.monthlyIncome || null,
+      loanAmount: submission.loanAmount,
+      loanPurpose: submission.loanPurpose,
+      expectedImpact: submission.futurePlans || submission.challenges || 'Improve business operations',
+      // Additional context for better profile generation
+      background: submission.background,
+      challenges: submission.challenges,
+      community: submission.community,
+      previousLoans: submission.previousLoans,
+      additionalComments: submission.additionalComments
+    };
     
-    // Update submission with generated profile
-    submission.generatedProfile = generatedProfile;
+    // Generate profile using OpenAI
+    const profileResult = await generateProfile(borrowerData);
+    
+    if (!profileResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: profileResult.error || 'Failed to generate profile'
+      });
+    }
+      // Update submission with generated profile
+    submission.generatedProfile = JSON.stringify(profileResult.data);
     submission.profileGeneratedAt = new Date();
     await submission.save();
     
@@ -243,7 +273,8 @@ const generateSubmissionProfile = async (req, res) => {
       success: true,
       message: 'Profile generated successfully',
       data: {
-        generatedProfile
+        profile: profileResult.data,
+        submission: submission
       }
     });
     
@@ -345,6 +376,114 @@ const deleteSubmission = async (req, res) => {
       success: false,
       message: 'Failed to delete submission',
       error: error.message
+    });  }
+};
+
+// @desc    Update submission image
+// @route   POST /api/submissions/:id/image
+// @access  Private (Admin)
+const updateSubmissionImage = async (req, res) => {
+  try {
+    const { imageType } = req.body;
+    const submissionId = req.params.id;
+    
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No image file provided'
+      });
+    }
+    
+    const submission = await Submission.findById(submissionId);
+    if (!submission) {
+      return res.status(404).json({
+        success: false,
+        message: 'Submission not found'
+      });
+    }
+    
+    let cloudinaryResult;
+    
+    // Upload new image to Cloudinary
+    if (imageType === 'profile') {
+      cloudinaryResult = await uploadImage(req.file.path, 'eclof-profiles');
+      
+      // Delete old image if exists
+      if (submission.profileImage?.cloudinaryId) {
+        try {
+          await deleteImage(submission.profileImage.cloudinaryId);
+        } catch (error) {
+          console.error('Failed to delete old profile image:', error);
+        }
+      }
+      
+      // Update submission
+      submission.profileImage = cloudinaryResult;
+    } else if (imageType === 'clientSignature') {
+      cloudinaryResult = await uploadSignature(req.file.path, 'eclof-signatures');
+      
+      // Delete old signature if exists
+      if (submission.clientSignature?.cloudinaryId) {
+        try {
+          await deleteImage(submission.clientSignature.cloudinaryId);
+        } catch (error) {
+          console.error('Failed to delete old client signature:', error);
+        }
+      }
+      
+      // Update submission
+      submission.clientSignature = cloudinaryResult;
+    } else if (imageType === 'representativeSignature') {
+      cloudinaryResult = await uploadSignature(req.file.path, 'eclof-signatures');
+      
+      // Delete old signature if exists
+      if (submission.representativeSignature?.cloudinaryId) {
+        try {
+          await deleteImage(submission.representativeSignature.cloudinaryId);
+        } catch (error) {
+          console.error('Failed to delete old representative signature:', error);
+        }
+      }
+      
+      // Update submission
+      submission.representativeSignature = cloudinaryResult;
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid image type'
+      });
+    }
+    
+    // Save updated submission
+    await submission.save();
+    
+    // Clean up uploaded file
+    if (fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    
+    res.json({
+      success: true,
+      message: 'Image updated successfully',
+      imagePath: cloudinaryResult.secure_url,
+      data: {
+        imageType,
+        imageUrl: cloudinaryResult.secure_url
+      }
+    });
+    
+  } catch (error) {
+    console.error('Update image error:', error);
+    
+    // Clean up uploaded file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update image',
+      error: error.message
     });
   }
 };
@@ -355,5 +494,6 @@ module.exports = {
   getSubmission,
   generateSubmissionProfile,
   updateSubmissionStatus,
-  deleteSubmission
+  deleteSubmission,
+  updateSubmissionImage
 };
