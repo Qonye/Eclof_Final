@@ -43,13 +43,83 @@ document.addEventListener('DOMContentLoaded', function() {
     let itemsPerPage = 10;
     let currentSubmissionId = null;
     let isEditingAgent = false;
-    let editingAgentId = null;
-
-    // Make currentSubmissionId accessible globally for the profile generator
+    let editingAgentId = null;    // Make currentSubmissionId accessible globally for the profile generator
     window.currentSubmissionId = null;
+    
+    // Track upload state to prevent modal closing during uploads
+    let isUploadInProgress = false;
+
+    // Toast notification function
+    function showToast(message, type = 'info') {
+        // Remove existing toast if any
+        const existingToast = document.querySelector('.toast-notification');
+        if (existingToast) {
+            existingToast.remove();
+        }
+        
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `toast-notification toast-${type}`;
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 500;
+            max-width: 400px;
+            word-wrap: break-word;
+            z-index: 10000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: opacity 0.3s ease;
+        `;
+        
+        // Set background color based on type
+        switch(type) {
+            case 'success':
+                toast.style.backgroundColor = '#28a745';
+                break;
+            case 'error':
+                toast.style.backgroundColor = '#dc3545';
+                break;
+            case 'warning':
+                toast.style.backgroundColor = '#ffc107';
+                toast.style.color = '#212529';
+                break;
+            default:
+                toast.style.backgroundColor = '#007bff';
+        }
+        
+        toast.textContent = message;
+        
+        // Add close button
+        const closeBtn = document.createElement('span');
+        closeBtn.innerHTML = '&times;';
+        closeBtn.style.cssText = `
+            float: right;
+            margin-left: 15px;
+            cursor: pointer;
+            font-size: 20px;
+            line-height: 1;
+        `;
+        closeBtn.onclick = () => toast.remove();
+        toast.appendChild(closeBtn);
+        
+        // Add to page
+        document.body.appendChild(toast);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 5000);
+    }
 
     // Check if the user is already logged in
-    checkLoginStatus();    // Event Listeners
+    checkLoginStatus();// Event Listeners
     adminLoginForm.addEventListener('submit', handleLogin);
     logoutButton.addEventListener('click', handleLogout);
     searchButton.addEventListener('click', handleSearch);    filterDatesButton.addEventListener('click', handleDateFilter);
@@ -77,12 +147,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const passwordToggle = document.getElementById('passwordToggle');
     if (passwordToggle) {
         passwordToggle.addEventListener('click', togglePasswordVisibility);
-    }
-      // Close modals when clicking outside
+    }    // Close modals when clicking outside (on the modal backdrop, not the content)
     window.addEventListener('click', function(event) {
         if (event.target === agentModal) {
             hideAgentModal();
         }
+        // Only close submission modal if clicking on the modal backdrop itself, not its content
+        // and no upload is in progress
         if (event.target === submissionModal) {
             closeSubmissionModal();
         }
@@ -776,44 +847,99 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!file.type.startsWith('image/')) {
             alert('Please select a valid image file.');
             return;
-        }
+        }        // Set upload state to prevent modal closing
+        isUploadInProgress = true;
+        
+        // Add visual indicator to modal header
+        addUploadProgressIndicator();
+        
+        // Show initial upload notification
+        showToast('Starting image upload to cloud storage...', 'info');
         
         // Create FormData to send the file
         const formData = new FormData();
         formData.append('image', file);
         formData.append('imageType', imageType);
         formData.append('submissionId', currentSubmissionId);
-        
-        // Show loading indicator
-        e.target.textContent = 'Uploading...';
+          // Show loading indicator with progress message
+        e.target.textContent = 'Uploading to Cloudinary...';
         e.target.disabled = true;
         
-        // Log the upload attempt
+        // Add a loading message for user feedback
+        const uploadContainer = e.target.closest('.upload-container') || e.target.parentElement;
+        let loadingMessage = uploadContainer.querySelector('.upload-loading-message');
+        if (!loadingMessage) {
+            loadingMessage = document.createElement('div');
+            loadingMessage.className = 'upload-loading-message';
+            loadingMessage.style.cssText = 'color: #007bff; font-size: 12px; margin-top: 5px; font-style: italic;';
+            uploadContainer.appendChild(loadingMessage);
+        }
+        loadingMessage.textContent = 'Uploading image to cloud storage, please wait...';
+        loadingMessage.style.display = 'block';
+          // Log the upload attempt
         console.log(`Uploading ${imageType} image for submission ${currentSubmissionId}`);
         console.log(`File: ${file.name}, Size: ${file.size}, Type: ${file.type}`);
         
-        // Upload the image
+        // Show progress notification
+        showToast(`Uploading ${imageType} image (${(file.size / 1024).toFixed(1)} KB)...`, 'info');
+        
+        // Upload the image with extended timeout for Cloudinary
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for Cloudinary
+        
         fetch(`${window.AppConfig.API_BASE_URL}/api/submissions/${currentSubmissionId}/image`, {
             method: 'POST',
-            body: formData
+            body: formData,
+            signal: controller.signal
         })
         .then(response => {
+            clearTimeout(timeoutId);
+            console.log('Response status:', response.status);
+            
             if (!response.ok) {
-                throw new Error(`Failed to upload image: ${response.status} ${response.statusText}`);
+                return response.text().then(text => {
+                    console.error('Error response:', text);
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                });
             }
             return response.json();
-        })
-        .then(data => {
-            console.log('Upload successful:', data);
+        }).then(data => {
+            console.log('Upload response received:', data);
+            console.log('Response type:', typeof data);
+            console.log('Success property:', data.success);
+            console.log('Image path:', data.imagePath);
+            
+            // Check if the response indicates success
+            if (data.success === false) {
+                console.error('Server returned success: false');
+                throw new Error(data.message || 'Upload failed');
+            }
+              console.log('Upload successful, updating image...');
+            
+            // Show progress notification
+            showToast('Upload successful! Updating image display...', 'success');
             
             // Update the image on the page
             const imageElement = document.getElementById(`${imageType}Image`);
+            console.log('Image element found:', !!imageElement);
+            console.log('Image element ID:', `${imageType}Image`);
             
-            if (imageElement) {
-                // Add timestamp query parameter to force refresh of cached image
-                const newImageUrl = data.imagePath.startsWith('/') ? data.imagePath : `/${data.imagePath}`;
-                imageElement.src = `${newImageUrl}?t=${new Date().getTime()}`;
-                console.log('Updated image src to:', imageElement.src);
+            if (imageElement && data.imagePath) {
+                // Use the secure_url directly from Cloudinary
+                const newImageUrl = `${data.imagePath}?t=${new Date().getTime()}`;
+                imageElement.src = newImageUrl;
+                console.log('Updated image src to:', newImageUrl);
+                  // Wait a moment for the image to load, then show final success
+                setTimeout(() => {
+                    console.log('Showing final success message');
+                    showToast('Image successfully updated and displayed!', 'success');
+                }, 1000);
+            } else {                console.warn('Image update failed:', {
+                    imageElement: !!imageElement,
+                    imagePath: data.imagePath,
+                    imageElementId: `${imageType}Image`
+                });
+                showToast('Image uploaded to cloud but display update failed. Please refresh the page to see the updated image.', 'warning');
             }
             
             // Hide upload interface
@@ -827,23 +953,58 @@ document.addEventListener('DOMContentLoaded', function() {
             if (replaceButton) {
                 replaceButton.style.display = 'inline-block';
             }
+        })        .catch(error => {
+            clearTimeout(timeoutId);
+            console.error('=== UPLOAD ERROR DETAILS ===');
+            console.error('Error object:', error);
+            console.error('Error name:', error.name);
+            console.error('Error message:', error.message);
+            console.error('Error stack:', error.stack);
+            console.error('============================');
             
-            // Show success message
-            alert('Image successfully updated!');
-        })
-        .catch(error => {
-            console.error('Error uploading image:', error);
-            alert(`Failed to upload image: ${error.message}`);
-        })
-        .finally(() => {
+            let userMessage;
+            if (error.name === 'AbortError') {
+                userMessage = 'Upload is taking longer than expected. Please check back in a moment - the upload may have completed successfully.';
+                console.log('Upload was aborted due to timeout');            } else if (error.message === 'Failed to fetch' || error.message.includes('network') || error.message.includes('fetch')) {
+                userMessage = 'Upload may have completed but there was a network interruption. Please check if the image was updated successfully.';
+                console.log('Network fetch error occurred - upload may have succeeded');
+            }else {
+                userMessage = `Upload error: ${error.message}. Please refresh the page to check if the upload succeeded.`;
+                console.log('Other error occurred:', error.message);
+            }
+            
+            console.log('Showing user message:', userMessage);
+              // Instead of alert, show a more user-friendly message
+            // Create a toast notification instead of modal-closing alert
+            showToast(userMessage, 'warning');
+            
+            // Optionally add a refresh button (but don't auto-refresh which closes modal)
+            console.log('Upload completed with error. User can manually refresh if needed.');        }).finally(() => {
+            // Reset upload state
+            isUploadInProgress = false;
+            
+            // Remove visual indicator from modal header
+            removeUploadProgressIndicator();
+            
             // Reset button
             e.target.textContent = 'Upload';
             e.target.disabled = false;
+            
+            // Hide loading message
+            const uploadContainer = e.target.closest('.upload-container') || e.target.parentElement;
+            const loadingMessage = uploadContainer.querySelector('.upload-loading-message');
+            if (loadingMessage) {
+                loadingMessage.style.display = 'none';
+            }
         });
-    }
-
-    // Close the submission details modal
+    }    // Close the submission details modal
     function closeSubmissionModal() {
+        // Prevent closing if upload is in progress
+        if (isUploadInProgress) {
+            showToast('Please wait while image upload is in progress...', 'warning');
+            return;
+        }
+        
         submissionModal.style.display = 'none';
         // Don't clear the currentSubmissionId here anymore
         // This allows the profile generator to still access it after the modal is closed
@@ -1234,6 +1395,51 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Error loading agents:', error);
             alert('Failed to load agents. Please try again.');
+        }
+    }
+
+    // Add visual upload progress indicator to modal header
+    function addUploadProgressIndicator() {
+        const modalHeader = document.querySelector('#submissionModal .modal-header');
+        if (!modalHeader) return;
+        
+        // Check if indicator already exists
+        let indicator = modalHeader.querySelector('.upload-progress-indicator');
+        if (indicator) return;
+        
+        // Create upload progress indicator
+        indicator = document.createElement('div');
+        indicator.className = 'upload-progress-indicator';
+        indicator.style.cssText = `
+            display: inline-block;
+            margin-left: 15px;
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 15px;
+            font-size: 12px;
+            animation: pulse 1.5s ease-in-out infinite alternate;
+        `;
+        indicator.innerHTML = '📤 Uploading...';
+        
+        // Add CSS animation for pulse effect
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                from { opacity: 0.6; }
+                to { opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        modalHeader.appendChild(indicator);
+    }
+    
+    // Remove visual upload progress indicator from modal header
+    function removeUploadProgressIndicator() {
+        const indicator = document.querySelector('#submissionModal .upload-progress-indicator');
+        if (indicator) {
+            indicator.remove();
         }
     }
 

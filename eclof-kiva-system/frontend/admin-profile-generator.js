@@ -120,8 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error(`Server responded with status: ${response.status}`);
                 }
                 return response.json();
-            })
-            .then(response => {
+            })            .then(response => {
                 if (!response.success) {
                     throw new Error(response.message || 'Failed to generate profile');
                 }
@@ -129,8 +128,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Store the submission data globally
                 window.currentSubmissionData = response.data.submission;
                 
+                // Log the response to debug
+                console.log('Profile API response:', response.data);
+                
+                // Handle different response formats
+                let profileData = response.data.profile;
+                
+                // If profileData is a string, try to parse it as JSON
+                if (typeof profileData === 'string') {
+                    try {
+                        profileData = JSON.parse(profileData);
+                        console.log('Parsed profile data:', profileData);
+                    } catch (parseError) {
+                        console.warn('Failed to parse profile as JSON, treating as plain text');
+                        // If it's not valid JSON, create a basic structure
+                        profileData = {
+                            title: "Generated Profile",
+                            profile: profileData,
+                            metadata: {
+                                key_points: [],
+                                sentiment: "Profile generated successfully"
+                            }
+                        };
+                    }
+                }
+                
                 // Display the generated profile
-                displayGeneratedProfile(response.data.profile);
+                displayGeneratedProfile(profileData);
             })
             .catch(error => {
                 console.error('Error generating profile:', error);
@@ -142,33 +166,56 @@ document.addEventListener('DOMContentLoaded', function() {
                 generateProfileButton.disabled = false;
             });
         }
-        
-        // Display the generated profile in the UI
+          // Display the generated profile in the UI
         function displayGeneratedProfile(profileData) {
+            console.log('Displaying profile data:', profileData);
+            
             // Ensure profile section exists
             const profileSection = ensureProfileSectionExists();
             profileSection.style.display = 'block';
             
+            // Handle different data formats
+            let title = 'Generated Profile';
+            let profileText = '';
+            let keyPoints = [];
+            let sentiment = '';
+            
+            // If profileData is an object with the expected structure
+            if (profileData && typeof profileData === 'object') {
+                title = profileData.title || title;
+                profileText = profileData.profile || '';
+                
+                if (profileData.metadata) {
+                    keyPoints = profileData.metadata.key_points || [];
+                    sentiment = profileData.metadata.sentiment || '';
+                }
+            } else if (typeof profileData === 'string') {
+                // If it's just a string, use it as the profile text
+                profileText = profileData;
+            }
+            
             // Update profile content
-            document.getElementById('profileTitle').textContent = profileData.title || 'Generated Profile';
-            document.getElementById('profileText').innerHTML = profileData.profile || '';
+            const titleElement = document.getElementById('profileTitle');
+            const textElement = document.getElementById('profileText');
+            
+            if (titleElement) titleElement.textContent = title;
+            if (textElement) textElement.innerHTML = profileText;
             
             // Update metadata if available
             const keyPointsList = document.getElementById('profileKeyPoints');
-            keyPointsList.innerHTML = '';
-            
-            if (profileData.metadata && profileData.metadata.key_points) {
-                profileData.metadata.key_points.forEach(point => {
+            if (keyPointsList) {
+                keyPointsList.innerHTML = '';
+                
+                keyPoints.forEach(point => {
                     const li = document.createElement('li');
                     li.textContent = point;
                     keyPointsList.appendChild(li);
                 });
             }
             
-            if (profileData.metadata && profileData.metadata.sentiment) {
-                document.getElementById('profileSentiment').textContent = `Sentiment: ${profileData.metadata.sentiment}`;
-            } else {
-                document.getElementById('profileSentiment').textContent = '';
+            const sentimentElement = document.getElementById('profileSentiment');
+            if (sentimentElement) {
+                sentimentElement.textContent = sentiment ? `Sentiment: ${sentiment}` : '';
             }
             
             // Add profile image if available
