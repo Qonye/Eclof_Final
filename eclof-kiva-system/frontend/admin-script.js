@@ -961,96 +961,116 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Toggle password visibility
+    function togglePasswordVisibility() {
+        const passwordInput = document.getElementById('agentPassword');
+        const toggleBtn = document.getElementById('passwordToggle');
+        const toggleIcon = toggleBtn.querySelector('.toggle-icon');
+        const passwordHelp = document.getElementById('passwordHelp');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.textContent = '🙈';
+            passwordHelp.style.display = 'block';
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.textContent = '👁️';
+            passwordHelp.style.display = 'none';
+        }
+    }
+
+    // Get stored agents from localStorage
     function getStoredAgents() {
-        const storedAgents = localStorage.getItem('field_agents');
-        if (storedAgents) {
-            return JSON.parse(storedAgents);
+        try {
+            const stored = localStorage.getItem('eclof_agents');
+            if (stored) {
+                return JSON.parse(stored);
+            }
+        } catch (error) {
+            console.error('Error loading stored agents:', error);
         }
         
-        // If no stored agents, use default from agent-config.js
-        if (typeof FIELD_AGENTS !== 'undefined') {
-            localStorage.setItem('field_agents', JSON.stringify(FIELD_AGENTS));
-            return FIELD_AGENTS;
+        // Return default agents from agent-config.js if available
+        if (typeof window.getAgents === 'function') {
+            return window.getAgents();
         }
         
         return {};
     }
-    
+
+    // Save agents to localStorage
     function saveStoredAgents(agents) {
-        localStorage.setItem('field_agents', JSON.stringify(agents));
-        // Also update the global FIELD_AGENTS if it exists
-        if (typeof window.FIELD_AGENTS !== 'undefined') {
-            window.FIELD_AGENTS = agents;
+        try {
+            localStorage.setItem('eclof_agents', JSON.stringify(agents));
+        } catch (error) {
+            console.error('Error saving agents:', error);
+            alert('Failed to save agent data');
         }
     }
-    
-    function displayAgents(agents) {
-        agentsTableBody.innerHTML = '';
-        
-        if (Object.keys(agents).length === 0) {
-            const emptyRow = document.createElement('tr');
-            emptyRow.innerHTML = `<td colspan="6" style="text-align: center;">No agents found</td>`;
-            agentsTableBody.appendChild(emptyRow);
-            return;
+
+    // Display agents in the table
+    function displayAgents(agents = null) {
+        if (!agents) {
+            agents = getStoredAgents();
         }
         
-        Object.entries(agents).forEach(([agentId, agent]) => {
+        const tbody = document.getElementById('agentsTableBody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        Object.keys(agents).forEach(agentId => {
+            const agent = agents[agentId];
             const row = document.createElement('tr');
-            const roleClass = agent.role || 'field_agent';
-            const roleName = (agent.role || 'field_agent').replace('_', ' ').toUpperCase();
+            
+            // Determine status
+            const status = agent.active !== false ? 'Active' : 'Inactive';
+            const statusClass = agent.active !== false ? 'status-active' : 'status-inactive';
             
             row.innerHTML = `
                 <td data-label="Agent ID">${agentId}</td>
-                <td data-label="Name">${agent.name}</td>
-                <td data-label="Branch">${agent.branch}</td>
-                <td data-label="Role">
-                    <span class="agent-role ${roleClass}">${roleName}</span>
-                </td>
+                <td data-label="Name">${agent.name || 'N/A'}</td>
+                <td data-label="Branch">${agent.branch || 'N/A'}</td>
+                <td data-label="Role">${agent.role || 'N/A'}</td>
                 <td data-label="Status">
-                    <span class="agent-status active">ACTIVE</span>
+                    <span class="status-badge ${statusClass}">${status}</span>
                 </td>
                 <td data-label="Actions">
-                    <div class="agent-actions">
-                        <button class="agent-action-btn edit" data-agent-id="${agentId}">Edit</button>
-                        <button class="agent-action-btn delete" data-agent-id="${agentId}">Delete</button>
+                    <div class="action-buttons">
+                        <button class="action-button edit-button" data-id="${agentId}">Edit</button>
+                        <button class="action-button delete-button" data-id="${agentId}">Delete</button>
                     </div>
                 </td>
             `;
             
-            agentsTableBody.appendChild(row);
+            tbody.appendChild(row);
         });
         
         // Add event listeners to action buttons
         attachAgentActionListeners();
     }
-    
+
+    // Attach event listeners to agent action buttons
     function attachAgentActionListeners() {
-        // Edit buttons
-        document.querySelectorAll('.agent-action-btn.edit').forEach(button => {
+        const editButtons = document.querySelectorAll('.edit-button');
+        const deleteButtons = document.querySelectorAll('.delete-button');
+        
+        editButtons.forEach(button => {
             button.addEventListener('click', function() {
-                const agentId = this.getAttribute('data-agent-id');
+                const agentId = this.getAttribute('data-id');
                 editAgent(agentId);
             });
         });
         
-        // Delete buttons
-        document.querySelectorAll('.agent-action-btn.delete').forEach(button => {
+        deleteButtons.forEach(button => {
             button.addEventListener('click', function() {
-                const agentId = this.getAttribute('data-agent-id');
+                const agentId = this.getAttribute('data-id');
                 deleteAgent(agentId);
             });
         });
     }
-    
-    function showAddAgentModal() {
-        isEditingAgent = false;
-        editingAgentId = null;
-        agentModalTitle.textContent = 'Add New Agent';
-        saveAgentButton.textContent = 'Add Agent';
-        agentForm.reset();
-        agentModal.style.display = 'block';
-    }
-    
+
+    // Edit agent function
     function editAgent(agentId) {
         const agents = getStoredAgents();
         const agent = agents[agentId];
@@ -1060,87 +1080,102 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // Set editing mode
         isEditingAgent = true;
         editingAgentId = agentId;
-        agentModalTitle.textContent = 'Edit Agent';
-        saveAgentButton.textContent = 'Update Agent';
         
-        // Fill form with agent data
+        // Update modal title
+        document.getElementById('agentModalTitle').textContent = 'Edit Agent';
+        
+        // Populate form fields
         document.getElementById('agentId').value = agentId;
-        document.getElementById('agentName').value = agent.name;
-        document.getElementById('agentBranch').value = agent.branch;
-        document.getElementById('agentRole').value = agent.role;
-        document.getElementById('agentPassword').value = agent.password;
+        document.getElementById('agentName').value = agent.name || '';
+        document.getElementById('agentBranch').value = agent.branch || '';
+        document.getElementById('agentRole').value = agent.role || '';
+        document.getElementById('agentPassword').value = agent.password || '';
         
-        // Disable agent ID field when editing
-        document.getElementById('agentId').disabled = true;
+        // Make agent ID field readonly during edit
+        document.getElementById('agentId').readOnly = true;
         
-        agentModal.style.display = 'block';
+        // Show password by default when editing
+        const passwordInput = document.getElementById('agentPassword');
+        const toggleBtn = document.getElementById('passwordToggle');
+        const toggleIcon = toggleBtn.querySelector('.toggle-icon');
+        const passwordHelp = document.getElementById('passwordHelp');
+        
+        passwordInput.type = 'text';
+        toggleIcon.textContent = '🙈';
+        passwordHelp.style.display = 'block';
+        
+        // Show modal
+        showAgentModal();
     }
-    
+
+    // Delete agent function
     function deleteAgent(agentId) {
-        if (!confirm(`Are you sure you want to delete agent ${agentId}? This action cannot be undone.`)) {
-            return;
+        if (confirm(`Are you sure you want to delete agent ${agentId}?`)) {
+            const agents = getStoredAgents();
+            delete agents[agentId];
+            saveStoredAgents(agents);
+            displayAgents(agents);
+            alert(`Agent ${agentId} has been deleted.`);
         }
-        
-        const agents = getStoredAgents();
-        delete agents[agentId];
-        saveStoredAgents(agents);
-        displayAgents(agents);
-        
-        alert(`Agent ${agentId} has been deleted successfully.`);
     }
-    
-    function hideAgentModal() {
-        agentModal.style.display = 'none';
-        agentForm.reset();
-        document.getElementById('agentId').disabled = false;
+
+    // Show agent modal for adding new agent
+    function showAddAgentModal() {
+        // Reset editing mode
         isEditingAgent = false;
         editingAgentId = null;
+        
+        // Update modal title
+        document.getElementById('agentModalTitle').textContent = 'Add New Agent';
+        
+        // Clear form
+        document.getElementById('agentForm').reset();
+        
+        // Make agent ID field editable
+        document.getElementById('agentId').readOnly = false;
+        
+        // Reset password field to hidden
+        const passwordInput = document.getElementById('agentPassword');
+        const toggleBtn = document.getElementById('passwordToggle');
+        const toggleIcon = toggleBtn.querySelector('.toggle-icon');
+        const passwordHelp = document.getElementById('passwordHelp');
+        
+        passwordInput.type = 'password';
+        toggleIcon.textContent = '👁️';
+        passwordHelp.style.display = 'none';
+        
+        // Show modal
+        showAgentModal();
     }
-    
-    function handleSaveAgent(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(agentForm);
-        const agentData = {
-            name: formData.get('agentName').trim(),
-            branch: formData.get('agentBranch'),
-            role: formData.get('agentRole'),
-            password: formData.get('agentPassword')
-        };
-        
-        const agentId = formData.get('agentId').trim().toUpperCase();
-        
-        // Validation
-        if (!agentId || !agentData.name || !agentData.branch || !agentData.role || !agentData.password) {
-            alert('Please fill in all required fields.');
-            return;
+
+    // Show agent modal
+    function showAgentModal() {
+        if (agentModal) {
+            agentModal.style.display = 'block';
+        }
+    }
+
+    // Hide agent modal
+    function hideAgentModal() {
+        if (agentModal) {
+            agentModal.style.display = 'none';
         }
         
-        // Validate agent ID format
-        if (!/^(FA|LO|BM)\d{3}$/.test(agentId)) {
-            alert('Agent ID must follow the format: FA001, LO001, or BM001');
-            return;
-        }
-        
+        // Reset form and editing state
+        document.getElementById('agentForm').reset();
+        isEditingAgent = false;
+        editingAgentId = null;
+        document.getElementById('agentId').readOnly = false;
+    }
+
+    // Load agents when switching to agents tab
+    function loadAgents() {
         const agents = getStoredAgents();
-        
-        // Check for duplicate agent ID (only when adding new agent)
-        if (!isEditingAgent && agents[agentId]) {
-            alert(`Agent ID ${agentId} already exists. Please choose a different ID.`);
-            return;
-        }
-        
-        // Save agent
-        agents[agentId] = agentData;
-        saveStoredAgents(agents);
-        
-        // Refresh display
         displayAgents(agents);
-        hideAgentModal();
-        
-        const action = isEditingAgent ? 'updated' : 'added';
-        alert(`Agent ${agentId} has been ${action} successfully.`);
     }
+
+    // ...existing code...
 });

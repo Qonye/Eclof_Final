@@ -5,10 +5,10 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Wait for the main admin script to finish initializing
     setTimeout(initializeProfileGenerator, 1000);
-    
-    function initializeProfileGenerator() {
-        // Add Generate Profile button to the modal actions
-        const modalActions = document.querySelector('.modal-actions');
+      function initializeProfileGenerator() {
+        // Add Generate Profile button to the submission modal actions only
+        const submissionModal = document.getElementById('submissionModal');
+        const modalActions = submissionModal ? submissionModal.querySelector('.modal-actions') : null;
         if (modalActions) {
             const generateProfileButton = document.createElement('button');
             generateProfileButton.id = 'generateProfile';

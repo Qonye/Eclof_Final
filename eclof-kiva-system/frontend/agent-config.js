@@ -112,3 +112,11 @@ const AgentAuth = {
 
 // Make AgentAuth available globally
 window.AgentAuth = AgentAuth;
+
+// Helper function to get all agents (for admin interface)
+function getAgents() {
+    return FIELD_AGENTS;
+}
+
+// Make getAgents available globally
+window.getAgents = getAgents;
