@@ -397,12 +397,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Fill the modal with submission details
                     renderSubmissionDetails(submission);
-                    
-                    // Display the modal
+                          // Display the modal
                     submissionModal.style.display = 'block';
                     
                     // Add load event listeners to all images
-                    setTimeout(addImageLoadEventListeners, 100);
+                    setTimeout(attachImageActionListeners, 100);
                 } else {
                     throw new Error(response.message || 'Failed to load submission details');
                 }

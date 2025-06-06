@@ -40,20 +40,20 @@ const AuthAPI = {
                 message: 'Network error. Please check your connection.'
             };
         }
-    },
-
-    // Verify token with backend
+    },    // Verify token with backend
     async verifyToken() {
         const token = localStorage.getItem('authToken');
         if (!token) return false;
 
         try {
-            const response = await fetch(`${API_BASE_URL}/auth/verify`, {
-                method: 'GET',
+            const response = await fetch(`${API_BASE_URL}/auth/verify-token`, {
+                method: 'POST',
                 headers: {
+                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
-                }
-            });            if (response.ok) {
+                },
+                body: JSON.stringify({ token })
+            });if (response.ok) {
                 const data = await response.json();
                 // Update session data if needed
                 if (data.data && data.data.user) {

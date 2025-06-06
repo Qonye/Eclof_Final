@@ -224,41 +224,72 @@ function initializeSignaturePad(elementId) {
     function stopDrawing() {
         isDrawing = false;
     }
-    
-    // Handle window resize to maintain proper canvas dimensions
+      // Handle window resize to maintain proper canvas dimensions
     window.addEventListener('resize', function() {
-        // Store the drawing
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        // Ensure canvas dimensions are valid integers
+        const currentWidth = Math.floor(canvas.width) || 1;
+        const currentHeight = Math.floor(canvas.height) || 1;
+        
+        // Store the drawing only if canvas has valid dimensions
+        let imageData = null;
+        if (currentWidth > 0 && currentHeight > 0) {
+            try {
+                imageData = ctx.getImageData(0, 0, currentWidth, currentHeight);
+            } catch (e) {
+                console.warn('Could not get image data during resize:', e);
+            }
+        }
         
         // Resize canvas
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
+        canvas.width = Math.floor(canvas.clientWidth) || 300;
+        canvas.height = Math.floor(canvas.clientHeight) || 150;
         
-        // Restore the drawing
-        ctx.putImageData(imageData, 0, 0);
+        // Restore the drawing if we have valid image data
+        if (imageData) {
+            try {
+                ctx.putImageData(imageData, 0, 0);
+            } catch (e) {
+                console.warn('Could not restore image data during resize:', e);
+            }
+        }
         
         // Reset context properties that are reset after resize
         ctx.lineWidth = 2;
         ctx.lineCap = 'round';
         ctx.strokeStyle = '#000000';
     });
-    
-    // Make canvas responsive to container size changes
+      // Make canvas responsive to container size changes
     const resizeObserver = new ResizeObserver(entries => {
         for (let entry of entries) {
-            const width = entry.contentRect.width;
-            const height = entry.contentRect.height;
+            const width = Math.floor(entry.contentRect.width) || 300;
+            const height = Math.floor(entry.contentRect.height) || 150;
             
             if (canvas.width !== width || canvas.height !== height) {
-                // Store the drawing
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                // Store the drawing only if canvas has valid dimensions
+                let imageData = null;
+                const currentWidth = Math.floor(canvas.width) || 1;
+                const currentHeight = Math.floor(canvas.height) || 1;
+                
+                if (currentWidth > 0 && currentHeight > 0) {
+                    try {
+                        imageData = ctx.getImageData(0, 0, currentWidth, currentHeight);
+                    } catch (e) {
+                        console.warn('Could not get image data during ResizeObserver:', e);
+                    }
+                }
                 
                 // Resize canvas
                 canvas.width = width;
                 canvas.height = height;
                 
-                // Restore the drawing
-                ctx.putImageData(imageData, 0, 0);
+                // Restore the drawing if we have valid image data
+                if (imageData) {
+                    try {
+                        ctx.putImageData(imageData, 0, 0);
+                    } catch (e) {
+                        console.warn('Could not restore image data during ResizeObserver:', e);
+                    }
+                }
                 
                 // Reset context properties
                 ctx.lineWidth = 2;
@@ -281,15 +312,26 @@ function initializeSignaturePad(elementId) {
             ctx.lineWidth = 2;
             ctx.lineCap = 'round';
             ctx.strokeStyle = '#000000';
-        },
-        isEmpty: function() {
-            const pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-            for (let i = 0; i < pixelData.length; i += 4) {
-                if (pixelData[i + 3] !== 0) {
-                    return false; // Found a non-transparent pixel
+        },        isEmpty: function() {
+            try {
+                const canvasWidth = Math.floor(canvas.width) || 1;
+                const canvasHeight = Math.floor(canvas.height) || 1;
+                
+                if (canvasWidth <= 0 || canvasHeight <= 0) {
+                    return true; // Treat invalid canvas as empty
                 }
+                
+                const pixelData = ctx.getImageData(0, 0, canvasWidth, canvasHeight).data;
+                for (let i = 0; i < pixelData.length; i += 4) {
+                    if (pixelData[i + 3] !== 0) {
+                        return false; // Found a non-transparent pixel
+                    }
+                }
+                return true;
+            } catch (e) {
+                console.warn('Could not check if canvas is empty:', e);
+                return false; // Assume not empty if we can't check
             }
-            return true;
         }
     };
 }

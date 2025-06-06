@@ -1,7 +1,8 @@
 // Admin Authentication System
 // Replaces hardcoded admin credentials with secure API authentication
 
-// Use the API_BASE_URL already defined in auth-api.js
+// Define API_BASE_URL for admin auth
+const API_BASE_URL = 'http://localhost:3000/api';
 
 // Admin Authentication API functions
 const AdminAuth = {
