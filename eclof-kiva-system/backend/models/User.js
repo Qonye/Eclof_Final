@@ -93,8 +93,7 @@ const userSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Index for faster queries
-userSchema.index({ agentId: 1 });
+// Indexes for faster queries (agentId index is automatically created by unique: true)
 userSchema.index({ role: 1, branch: 1 });
 userSchema.index({ isActive: 1 });
 
