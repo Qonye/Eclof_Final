@@ -11,14 +11,12 @@ class Config {
     const isDevelopment = window.location.hostname === 'localhost' || 
                          window.location.hostname === '127.0.0.1' ||
                          window.location.hostname === '0.0.0.0';
-    
-    if (isDevelopment) {
+      if (isDevelopment) {
       // Development: Use explicit backend URL
       return 'http://localhost:3000';
     } else {
-      // Production: Use your deployed backend URL
-      // TODO: Replace this with your actual backend URL after deployment
-      return 'https://your-backend-app.railway.app';
+      // Production: Use deployed Railway backend URL
+      return 'https://eclofprofileengine.up.railway.app';
     }
   }
 
