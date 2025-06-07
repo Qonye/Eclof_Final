@@ -62,22 +62,41 @@ Community Contribution: ${borrowerData.community || 'Not specified'}
 Previous Loans: ${borrowerData.previousLoans || 'Not specified'}
 Expected Impact: ${expectedImpact || 'Business growth and community development'}
 
-GUIDELINES:
-1. Create a concise, professional borrower profile in a single paragraph of 8-10 sentences.
-2. Emphasize the borrower's name in **bold** at the beginning.
-3. Include specific details about their business and loan purpose.
-4. Mention how the loan will help them overcome challenges and contribute to their community.
-5. Use appropriate pronouns (assume they/them if gender not specified).
-6. Format monetary values with "KES" currency.
-7. Replace any mentions of "ECLOF" with "ECLOF-Kenya Limited, Kiva's field partner".
-8. Create a compelling title that reflects their business or loan purpose.
-9. Keep the tone professional but warm and engaging.
-10. Focus on their resilience, business acumen, and community impact.
+STRICT FORMATTING GUIDELINES (FOLLOW EXACTLY):
+1. Write EXACTLY 10 or 11 sentences in a single paragraph - NO MORE, NO LESS
+2. DO NOT number the paragraph itself
+3. Emphasize the borrower's name in **bold** format
+4. Include a humorous pun somewhere in the summary to make it interesting and engaging
+5. Create a compelling title based on loan usage with specific examples of fund use
+
+CONTENT REQUIREMENTS:
+• Fix any typos and ensure proper grammar
+• Capitalize proper nouns consistently  
+• Use correct punctuation and spacing
+• Ensure singular/plural consistency
+• Use correct gender pronouns: "she/her" for females, "he/him" for males (use name as guide)
+• Split any run-on sentences for clarity
+• Format ALL monetary amounts with "KES" currency (e.g., "30,000 KES")
+• Vary language to avoid repetitive phrasing
+• Use professional terminology (e.g., "Quality meat" not just "meat")
+• Add necessary articles for clarity
+• Simplify any awkward phrasing
+• Clarify vague expressions and specify loan purpose clearly
+• Remove any group/branch names to protect privacy
+• Generalize business references (avoid specific business names)
+• Detail loan usage clearly - specify exactly how funds will be used
+• Replace "ECLOF" with "ECLOF-Kenya Limited, Kiva's field partner"
+
+TONE AND STYLE:
+• Professional but warm and engaging
+• Focus on resilience, business acumen, and community impact
+• Make it interesting to read with the humorous pun
+• Highlight their entrepreneurial spirit and determination
 
 OUTPUT FORMAT (return only valid JSON):
 {
-  "title": "Descriptive title related to their business or loan purpose",
-  "profile": "Professional 8-10 sentence summary with borrower name in **bold**...",
+  "title": "Title based on loan usage including specific examples of fund use",
+  "profile": "Single paragraph with exactly 10-11 sentences, borrower name in **bold**, includes humorous pun...",
   "metadata": {
     "key_points": ["3-4 key highlights from the profile"],
     "sentiment": "brief positive assessment of borrower potential"
@@ -165,29 +184,30 @@ function generateMockProfile(borrowerData) {
     };
   }
   
-  // Create reasonable titles based on loan purpose
-  let title = "Expanding Retail Business with Improved Inventory and Equipment";
+  // Create title based on loan purpose with specific fund usage examples
+  let title = `Expanding ${businessDescription || 'Retail Business'} with Inventory Restocking and Equipment Upgrades`;
   
   // Use available data to create a personalized profile
   const borrowerName = fullName;
   const businessDesc = businessDescription || 'retail business';
   const amount = loanAmount ? `${loanAmount.toLocaleString()} KES` : '65,000 KES';
-  const purpose = loanPurpose || 'business expansion';
+  const purpose = loanPurpose || 'business expansion and inventory restocking';
   const plans = expectedImpact || 'continue growing the business and supporting the community';
   
-  let profile = `**${borrowerName}** operates a thriving ${businessDesc} that has become an essential part of their local community. With a proven track record of financial responsibility, they have successfully managed previous loans and demonstrated strong business acumen. This ${amount} loan will be strategically invested in ${purpose}, enabling significant business growth and increased community impact. The borrower has shown remarkable resilience in overcoming business challenges and has consistently found innovative ways to serve their customers better. Their business not only provides essential services to the local community but also creates employment opportunities for others. Previous support from ECLOF-Kenya Limited, Kiva's field partner, has helped establish a solid foundation for growth. The borrower's commitment to community development extends beyond their business, as they actively participate in local initiatives and mentor other entrepreneurs. With this new funding, they plan to expand their operations, improve service quality, and create additional income streams. Looking to the future, ${borrowerName} hopes to ${plans}, demonstrating their long-term vision and commitment to both business success and community development.`;
+  // Create exactly 10-11 sentences with humorous pun, following NLP guidelines
+  let profile = `**${borrowerName}** operates a thriving ${businessDesc} that has become the cornerstone of their local community's commerce. With a proven track record of financial responsibility, they have successfully managed previous loans from ECLOF-Kenya Limited, Kiva's field partner, demonstrating remarkable business acumen. This ${amount} loan will be strategically invested in ${purpose}, enabling significant expansion and improved customer service quality. The borrower has shown exceptional resilience in overcoming market challenges and consistently found innovative ways to serve their customers better. Their business not only provides essential goods and services to the local community but also creates employment opportunities for local residents. You could say they're really "banking" on this opportunity to take their business to the next level! Previous support has helped establish a solid foundation, and now they're ready to scale operations with enhanced inventory and modern equipment. The borrower's commitment to community development extends beyond profits, as they actively participate in local initiatives and mentor aspiring entrepreneurs. With this new funding, they plan to diversify their product range, improve storage facilities, and implement better customer service systems. Looking ahead, ${borrowerName} aims to ${plans}, demonstrating their long-term vision for sustainable growth. Their entrepreneurial spirit and dedication to excellence make them an ideal candidate for continued support and investment.`;
   
-  // If specific background information is available, incorporate it
+  // If specific background information is available, incorporate it while maintaining sentence count
   if (background && background !== 'Not specified') {
-    profile = `**${borrowerName}** brings ${background.toLowerCase()} to their ${businessDesc} operations. ` + profile.substring(profile.indexOf('operates') + 8);
+    profile = profile.replace('operates a thriving', `brings ${background.toLowerCase()} experience to operating a thriving`);
   }
   
   // Create metadata based on available information
   const keyPoints = [
-    `${borrowerName} operates a ${businessDesc} serving the local community`,
-    "Demonstrated financial responsibility with previous loan repayments",
-    `${amount} loan will fund ${purpose} and business expansion`,
-    "Strong commitment to community development and mentoring other entrepreneurs"
+    `${borrowerName} operates a successful ${businessDesc} serving the local community`,
+    "Proven financial responsibility with previous loan repayments to ECLOF-Kenya Limited",
+    `${amount} loan will fund ${purpose} and business modernization`,
+    "Strong community leadership and commitment to mentoring other entrepreneurs"
   ];
   
   return {
@@ -197,7 +217,7 @@ function generateMockProfile(borrowerData) {
       profile: profile,
       metadata: {
         key_points: keyPoints,
-        sentiment: "Positive outlook with strong business growth potential and community impact"
+        sentiment: "Excellent potential with strong business foundation and clear growth strategy"
       }
     }
   };
