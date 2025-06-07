@@ -1257,34 +1257,520 @@ h2 {
     font-style: italic;
 }
 
-/* Responsive Design for Tabs */
+/* Enhanced Mobile Responsive Design */
+
+/* Mobile-first viewport and base styles */
 @media (max-width: 768px) {
-    .tab-navigation {
-        flex-direction: column;
+    body {
+        font-size: 16px; /* Prevent zoom on iOS */
+        padding: 0;
+        margin: 0;
     }
     
-    .tab-button {
-        border-bottom: none;
-        border-right: 3px solid transparent;
+    .admin-container {
+        margin: 0;
+        padding: 15px;
+        border-radius: 0;
+        min-height: 100vh;
+        box-shadow: none;
     }
     
-    .tab-button.active {
-        border-right-color: #004f71;
-        border-bottom-color: transparent;
+    header {
+        padding: 20px 15px;
+        margin-bottom: 25px;
+        text-align: center;
     }
     
-    .tab-controls {
+    .logo {
+        max-width: 180px;
+        margin-bottom: 15px;
+    }
+    
+    h1 {
+        font-size: 24px;
+        line-height: 1.3;
+    }
+    
+    h2 {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+    
+    /* Mobile Admin Login */
+    .admin-login {
+        margin: 20px auto;
+        padding: 25px 20px;
+        max-width: 95%;
+        border-radius: 12px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group input {
+        padding: 14px 16px;
+        font-size: 16px; /* Prevent zoom */
+        border-radius: 8px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Mobile Dashboard Header */
+    .dashboard-header {
         flex-direction: column;
         align-items: stretch;
+        gap: 20px;
+        padding: 15px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 20px;
     }
     
-    .agents-header {
+    .dashboard-controls {
         flex-direction: column;
         gap: 15px;
+        width: 100%;
+    }
+    
+    .search-box {
+        width: 100%;
+    }
+    
+    .search-box input {
+        width: 100%;
+        min-width: auto;
+        padding: 12px 16px;
+        font-size: 16px;
+        border-radius: 8px;
+        box-sizing: border-box;
+    }
+    
+    .filter-box {
+        width: 100%;
+    }
+    
+    .filter-box select {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 16px;
+        border-radius: 8px;
+        box-sizing: border-box;
+    }
+    
+    /* Mobile Table - Convert to Cards */
+    .submissions-table-container {
+        display: none;
+    }
+    
+    .submissions-cards {
+        display: block;
+    }
+    
+    .submission-card {
+        padding: 20px 15px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+    
+    .card-title {
+        font-size: 18px;
+        line-height: 1.3;
+    }
+    
+    .card-details {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .card-detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .card-detail-item:last-child {
+        border-bottom: none;
+    }
+    
+    .card-detail-label {
+        flex: 0 0 40%;
+        font-weight: 600;
+        color: var(--eclof-blue);
+    }
+    
+    .card-detail-value {
+        flex: 1;
+        text-align: right;
+    }
+    
+    /* Mobile Action Buttons */
+    .card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-light);
+    }
+    
+    .card-actions button {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 14px;
+        border-radius: 6px;
+        font-weight: 500;
+        min-height: 44px; /* Touch-friendly height */
+    }
+    
+    .card-actions .view-button {
+        background-color: var(--eclof-blue);
+        color: white;
+        border: none;
+    }
+    
+    .card-actions .delete-button {
+        background-color: var(--admin-danger);
+        color: white;
+        border: none;
+    }
+    
+    /* Mobile Modals */
+    .modal {
+        padding: 10px;
+    }
+    
+    .modal-content {
+        width: 95%;
+        max-width: none;
+        margin: 20px auto;
+        max-height: 90vh;
+        overflow-y: auto;
+        border-radius: 8px;
+    }
+    
+    .modal-header {
+        padding: 20px 15px 15px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .modal-title {
+        font-size: 20px;
+        line-height: 1.3;
+    }
+    
+    .close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 24px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal-body {
+        padding: 15px;
+    }
+    
+    .modal-footer {
+        padding: 15px;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .modal-footer button {
+        width: 100%;
+        padding: 14px 16px;
+        font-size: 16px;
+        border-radius: 8px;
+        min-height: 48px;
+    }
+    
+    /* Mobile Profile Generation */
+    .profile-actions {
+        flex-direction: column;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .profile-actions button {
+        width: 100%;
+        padding: 14px 16px;
+        font-size: 16px;
+        border-radius: 8px;
+        min-height: 48px;
+    }
+    
+    .generated-profile {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 8px;
+    }
+    
+    .profile-content {
+        font-size: 16px;
+        line-height: 1.6;
+        padding: 15px;
+        border-radius: 6px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    /* Mobile Agent Management */
+    .agents-header {
+        flex-direction: column;
+        gap: 20px;
         text-align: center;
+        padding: 15px;
     }
     
     .agent-actions {
         flex-direction: column;
+        width: 100%;
+        gap: 15px;
+    }
+    
+    .filter-buttons {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    .filter-buttons button {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 16px;
+        border-radius: 8px;
+        min-height: 44px;
+    }
+    
+    .add-agent-btn {
+        width: 100%;
+        padding: 14px 16px;
+        font-size: 16px;
+        border-radius: 8px;
+        min-height: 48px;
+    }
+    
+    /* Mobile Agent Cards */
+    .agents-table-container {
+        display: none;
+    }
+    
+    .agents-cards {
+        display: block;
+    }
+    
+    .agent-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px 15px;
+        margin-bottom: 15px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--border-light);
+    }
+    
+    .agent-card-header {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .agent-name {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--eclof-blue);
+    }
+    
+    .agent-id {
+        font-size: 14px;
+        color: var(--admin-secondary);
+        background-color: var(--eclof-light-gray);
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+    
+    .agent-details {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+    
+    .agent-detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .agent-detail-item:last-child {
+        border-bottom: none;
+    }
+    
+    .agent-detail-label {
+        font-weight: 600;
+        color: var(--eclof-blue);
+        flex: 0 0 35%;
+    }
+    
+    .agent-detail-value {
+        flex: 1;
+        text-align: right;
+    }
+    
+    .agent-card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-light);
+    }
+    
+    .agent-card-actions button {
+        width: 100%;
+        padding: 10px 16px;
+        font-size: 14px;
+        border-radius: 6px;
+        font-weight: 500;
+        min-height: 40px;
+    }
+    
+    .edit-button {
+        background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+        color: white;
+        border: none;
+    }
+    
+    .edit-button:hover {
+        background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
+    }
+    
+    /* Mobile Tab Navigation */
+    .tab-navigation {
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 0 15px;
+        margin-bottom: 20px;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .tab-button {
+        flex: 0 0 auto;
+        min-width: 120px;
+        padding: 12px 16px;
+        font-size: 14px;
+        white-space: nowrap;
+        border-bottom: 3px solid transparent;
+        border-right: none;
+    }
+    
+    .tab-button.active {
+        border-bottom-color: var(--eclof-blue);
+        border-right-color: transparent;
+    }
+    
+    /* Mobile Form Groups in Modals */
+    #agentModal .form-group {
+        margin-bottom: 20px;
+    }
+    
+    #agentModal .form-group label {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+    
+    #agentModal .form-group input,
+    #agentModal .form-group select {
+        padding: 14px 16px;
+        font-size: 16px;
+        border-radius: 8px;
+        min-height: 48px;
+        box-sizing: border-box;
+    }
+    
+    /* Mobile Pagination */
+    .pagination {
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+        padding: 20px 15px;
+    }
+    
+    .pagination-info {
+        text-align: center;
+        font-size: 14px;
+    }
+    
+    .pagination-controls {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .pagination-controls button {
+        flex: 1;
+        max-width: 120px;
+        padding: 12px 16px;
+        font-size: 14px;
+        border-radius: 6px;
+        min-height: 44px;
+    }
+    
+    /* Mobile Status Indicators */
+    .status-indicator {
+        justify-content: center;
+        margin-top: 15px;
+    }
+    
+    .status-text {
+        font-size: 16px;
+    }
+    
+    /* Mobile Message Banners */
+    .message-banner {
+        margin: 15px;
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+    
+    /* Ensure proper touch targets */
+    button, .btn, a.btn {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 12px 16px;
+    }
+    
+    /* Improve text readability */
+    p, div, span {
+        line-height: 1.5;
+    }
+    
+    /* Prevent horizontal scroll */
+    .admin-container, .modal-content {
+        overflow-x: hidden;
     }
 }
