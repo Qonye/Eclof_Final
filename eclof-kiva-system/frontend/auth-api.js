@@ -1,7 +1,9 @@
 // API-based Authentication System
 // Replaces the hardcoded agent-config.js with secure backend authentication
 
-const API_BASE_URL = 'http://localhost:3000/api';
+// Use centralized config instead of hardcoded URL
+const getApiBaseUrl = () => window.AppConfig?.API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = `${getApiBaseUrl()}/api`;
 
 // Authentication API functions
 const AuthAPI = {

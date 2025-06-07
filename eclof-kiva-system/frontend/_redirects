@@ -1,0 +1,7 @@
+# Netlify redirects for ECLOF Kiva System
+# Admin panel routing
+/admin /admin.html 200
+/admin/* /admin.html 200
+
+# Main app routing (catch-all for SPA)
+/* /index.html 200

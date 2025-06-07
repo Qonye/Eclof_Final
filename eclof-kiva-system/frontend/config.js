@@ -6,7 +6,6 @@ class Config {
     // Determine the API base URL based on environment
     this.API_BASE_URL = this.getApiBaseUrl();
   }
-
   getApiBaseUrl() {
     // Check if we're in development mode
     const isDevelopment = window.location.hostname === 'localhost' || 
@@ -17,8 +16,9 @@ class Config {
       // Development: Use explicit backend URL
       return 'http://localhost:3000';
     } else {
-      // Production: Use same origin (assumes backend and frontend are served from same domain)
-      return window.location.origin;
+      // Production: Use your deployed backend URL
+      // TODO: Replace this with your actual backend URL after deployment
+      return 'https://your-backend-app.railway.app';
     }
   }
 
@@ -30,10 +30,11 @@ class Config {
   getSubmissionUrl(id) {
     return `${this.API_BASE_URL}/api/submissions/${id}`;
   }
-
   getGenerateProfileUrl(id) {
     return `${this.API_BASE_URL}/api/submissions/${id}/generate-profile`;
-  }  getDeleteSubmissionUrl(id) {
+  }
+  
+  getDeleteSubmissionUrl(id) {
     return `${this.API_BASE_URL}/api/submissions/${id}`;
   }
 

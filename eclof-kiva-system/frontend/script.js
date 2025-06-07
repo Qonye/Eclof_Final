@@ -624,8 +624,8 @@ function createFormDataWithSignatures(form) {
  * Submit form data to the server
  */
 function submitFormToServer(formData) {
-    // Set the server endpoint URL
-    const apiUrl = 'http://localhost:3000/api/submissions';
+    // Set the server endpoint URL using centralized config
+    const apiUrl = window.AppConfig.getSubmissionsUrl();
     
     fetch(apiUrl, {
         method: 'POST',
